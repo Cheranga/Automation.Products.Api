@@ -1,0 +1,32 @@
+### Get todo tasks
+GET https://localhost:7033/todos
+Accept: application/json
+
+### Get todo task
+GET https://localhost:7033/todos/1
+Accept: application/json
+
+### Create todo
+POST https://localhost:7033/todos
+Content-Type: application/json
+
+{
+  "name": "Do A"
+}
+
+### Update todo
+PUT https://localhost:7033/todos/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Do A",
+  "IsComplete": true
+}
+
+
+
+
+
+
+
