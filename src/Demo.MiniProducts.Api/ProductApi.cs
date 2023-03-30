@@ -1,6 +1,8 @@
 ﻿using Demo.MiniProducts.Api.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.AspNetCore.Http.TypedResults;
+using static Demo.MiniProducts.Api.Models.ErrorResponse;
 
 namespace Demo.MiniProducts.Api;
 
@@ -8,11 +10,22 @@ public static class ProductApi
 {
     public const string Route = "products";
 
-    public static async Task<IResult> GetAllProducts(ProductsDbContext context) =>
-        Ok(await context.Products.ToListAsync());
+    public static async Task<Results<NotFound<NotFoundResponse>, Ok<List<Product>>>> GetAllProducts(
+        ProductsDbContext context
+    ) =>
+        await context.Products.ToListAsync() is { } products
+            ? products.Any()
+                ? Ok(products)
+                : NotFound(ErrorResponse.NotFound())
+            : NotFound(ErrorResponse.NotFound());
 
-    public static async Task<IResult> GetProduct(int id, ProductsDbContext context) =>
-        await context.Products.FindAsync(id) is { } product ? Ok(product) : NotFound();
+    public static async Task<Results<NotFound<NotFoundResponse>, Ok<Product>>> GetProduct(
+        int id,
+        ProductsDbContext context
+    ) =>
+        await context.Products.FindAsync(id) is { } product
+            ? Ok(product)
+            : NotFound(ErrorResponse.NotFound());
 
     public static async Task<IResult> Create(Product product, ProductsDbContext context)
     {
