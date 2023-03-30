@@ -1,4 +1,5 @@
 ﻿using Demo.MiniProducts.Api.Models;
+using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.AspNetCore.Http.TypedResults;
@@ -27,12 +28,20 @@ public static class ProductApi
             ? Ok(product)
             : NotFound(ErrorResponse.NotFound());
 
-    public static async Task<IResult> Create(Product product, ProductsDbContext context)
+    public static async Task<Results<ValidationProblem, Created>> Create(
+        Product product,
+        ProductsDbContext context,
+        IValidator<Product> validator
+    )
     {
+        var validationResult = await validator.ValidateAsync(product);
+        if (!validationResult.IsValid)
+            return validationResult.ToErrorResponse();
+
         await context.Products.AddAsync(product);
         await context.SaveChangesAsync();
 
-        return Created($"/{Route}/{product.Id}", product);
+        return Created($"/{Route}/{product.Id}");
     }
 
     public static async Task<IResult> Update(int id, Product updated, ProductsDbContext context) =>

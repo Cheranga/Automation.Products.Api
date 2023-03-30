@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.5.1" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.4" />
     </ItemGroup>
 
