@@ -38,4 +38,10 @@ To provide a Products API to use for automation.
 ### Automation tests
 - [ ] Creating an integration test suite.
 
+---
+
+## References
+
+* [Minimal API Tutorial](https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api?view=aspnetcore-7.0&tabs=visual-studio)
+
 
