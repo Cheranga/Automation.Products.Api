@@ -10,11 +10,18 @@ public static class Bootstrapper
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        ReisterSwagger(builder);
         RegisterValidators(builder);
         RegisterDataAccess(builder);
 
         // TODO: add other dependencies
         return builder.Build();
+    }
+
+    private static void ReisterSwagger(WebApplicationBuilder builder)
+    {
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
     }
 
     private static void RegisterValidators(WebApplicationBuilder builder)
