@@ -7,32 +7,34 @@ namespace Demo.MiniProducts.Api;
 public static class ProductApi
 {
     public const string Route = "products";
-    
+
     public static async Task<IResult> GetAllProducts(ProductsDbContext context) =>
         Ok(await context.Products.ToListAsync());
 
     public static async Task<IResult> GetProduct(int id, ProductsDbContext context) =>
-        await context.Products.FindAsync(id) is { } todo
-            ? Ok(todo)
-            : NotFound();
+        await context.Products.FindAsync(id) is { } product ? Ok(product) : NotFound();
 
-    public static async Task<IResult> Create(Product todo, ProductsDbContext context)
+    public static async Task<IResult> Create(Product product, ProductsDbContext context)
     {
-        await context.Products.AddAsync(todo);
+        await context.Products.AddAsync(product);
         await context.SaveChangesAsync();
 
-        return Created($"/todos/{todo.Id}", todo);
+        return Created($"/{Route}/{product.Id}", product);
     }
 
     public static async Task<IResult> Update(int id, Product updated, ProductsDbContext context) =>
-        await context.Products.FindAsync(id) is { } todo
-            ? await UpdateProduct(context, todo, updated)
+        await context.Products.FindAsync(id) is { } product
+            ? await UpdateProduct(context, product, updated)
             : NotFound();
 
-    private static async Task<IResult> UpdateProduct(ProductsDbContext context, Product todo, Product updated)
+    private static async Task<IResult> UpdateProduct(
+        ProductsDbContext context,
+        Product product,
+        Product updated
+    )
     {
-        todo.Name = updated.Name;
-        todo.IsComplete = updated.IsComplete;
+        product.Name = updated.Name;
+        product.IsComplete = updated.IsComplete;
         await context.SaveChangesAsync();
         return NoContent();
     }
