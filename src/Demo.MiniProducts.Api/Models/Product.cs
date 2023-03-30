@@ -2,19 +2,19 @@
 
 namespace Demo.MiniProducts.Api.Models;
 
-public class Todo
+public class Product
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public bool IsComplete { get; set; }
 }
 
-class TodoContext : DbContext
+public class ProductsDbContext : DbContext
 {
-    public TodoContext(DbContextOptions<TodoContext> options) : base(options)
+    public ProductsDbContext(DbContextOptions<ProductsDbContext> options) : base(options)
     {
         
     }
 
-    public DbSet<Todo> Todos => Set<Todo>();
+    public DbSet<Product> Products => Set<Product>();
 }
