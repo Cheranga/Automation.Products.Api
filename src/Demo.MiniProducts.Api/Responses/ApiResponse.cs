@@ -11,3 +11,4 @@ public class ApiResponse<T>
     
     public static ApiResponse<T> New(T data)=> new (data);
 }
+

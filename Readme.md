@@ -28,6 +28,9 @@ To provide a Products API to use for automation.
 ### Logging
 - [ ] Using Serilog for structured logging.
 
+### Versioning
+- [ ] Support for default and specific versioning.
+
 ### CI/CD
 - [ ] Using GHA for CI/CD pipelines.
 - [ ] Using Azure Bicep for cloud resources deployment.
