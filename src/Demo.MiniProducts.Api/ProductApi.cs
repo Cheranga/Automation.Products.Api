@@ -11,22 +11,22 @@ public static class ProductApi
 {
     public const string Route = "products";
 
-    public static async Task<Results<NotFound<NotFoundResponse>, Ok<List<Product>>>> GetAllProducts(
+    public static async Task<Results<NotFound, Ok<List<Product>>>> GetAllProducts(
         ProductsDbContext context
     ) =>
         await context.Products.ToListAsync() is { } products
             ? products.Any()
                 ? Ok(products)
-                : NotFound(ErrorResponse.NotFound())
-            : NotFound(ErrorResponse.NotFound());
+                : NotFound()
+            : NotFound();
 
-    public static async Task<Results<NotFound<NotFoundResponse>, Ok<Product>>> GetProduct(
+    public static async Task<Results<NotFound<ErrorResponse>, Ok<Product>>> GetProduct(
         int id,
         ProductsDbContext context
     ) =>
         await context.Products.FindAsync(id) is { } product
             ? Ok(product)
-            : NotFound(ErrorResponse.NotFound());
+            : NotFound(ProductNotFound(id));
 
     public static async Task<Results<ValidationProblem, Created>> Create(
         Product product,

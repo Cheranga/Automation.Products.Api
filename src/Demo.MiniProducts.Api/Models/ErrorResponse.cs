@@ -7,13 +7,21 @@ public abstract class ErrorResponse
 
     private ErrorResponse() { }
 
-    public sealed class InvalidDataResponse : ErrorResponse { }
+    public sealed class ProductNotFoundResponse : ErrorResponse
+    {
+        public int ProductId { get; init; }
 
-    public sealed class NotFoundResponse : ErrorResponse { }
+        public static ProductNotFoundResponse New(int productId, int code, string message) =>
+            new()
+            {
+                ProductId = productId,
+                Code = code,
+                Message = message
+            };
+    }
 
-    public static InvalidDataResponse InvalidData(string message = "invalid data") =>
-        new() { Code = 400, Message = message };
-
-    public static NotFoundResponse NotFound(string message = "not found") =>
-        new() { Code = 404, Message = message };
+    public static ErrorResponse ProductNotFound(
+        int productId,
+        string message = "product not found"
+    ) => ProductNotFoundResponse.New(productId, 404, message);
 }
