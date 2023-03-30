@@ -1,4 +1,5 @@
 ﻿using Demo.MiniProducts.Api.Models;
+using Demo.MiniProducts.Api.Responses;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -10,21 +11,21 @@ public static class ProductApi
 {
     public const string Route = "products";
 
-    public static async Task<Results<ProblemHttpResult, Ok<List<Product>>>> GetAllProducts(
-        ProductsDbContext context
-    ) =>
+    public static async Task<
+        Results<ProblemHttpResult, Ok<ApiResponse<List<Product>>>>
+    > GetAllProducts(ProductsDbContext context) =>
         await context.Products.ToListAsync() is { } products
             ? products.Any()
-                ? Ok(products)
+                ? Ok(ApiResponse<List<Product>>.New(products))
                 : ResponseExtensions.EmptyProducts()
             : ResponseExtensions.EmptyProducts();
 
-    public static async Task<Results<ProblemHttpResult, Ok<Product>>> GetProduct(
+    public static async Task<Results<ProblemHttpResult, Ok<ApiResponse<Product>>>> GetProduct(
         int id,
         ProductsDbContext context
     ) =>
         await context.Products.FindAsync(id) is { } product
-            ? Ok(product)
+            ? Ok(ApiResponse<Product>.New(product))
             : ResponseExtensions.ProductUnfound(id);
 
     public static async Task<Results<ValidationProblem, Created>> Create(

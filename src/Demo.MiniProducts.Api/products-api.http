@@ -11,7 +11,7 @@ POST https://localhost:7033/products
 Content-Type: application/json
 
 {
-  "//name": "aaa"
+  "name": "aaa"
 }
 
 ### Update product
