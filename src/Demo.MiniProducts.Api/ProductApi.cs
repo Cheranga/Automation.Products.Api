@@ -3,7 +3,6 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.AspNetCore.Http.TypedResults;
-using static Demo.MiniProducts.Api.Models.ErrorResponse;
 
 namespace Demo.MiniProducts.Api;
 
@@ -11,22 +10,22 @@ public static class ProductApi
 {
     public const string Route = "products";
 
-    public static async Task<Results<NotFound, Ok<List<Product>>>> GetAllProducts(
+    public static async Task<Results<ProblemHttpResult, Ok<List<Product>>>> GetAllProducts(
         ProductsDbContext context
     ) =>
         await context.Products.ToListAsync() is { } products
             ? products.Any()
                 ? Ok(products)
-                : NotFound()
-            : NotFound();
+                : ResponseExtensions.EmptyProducts()
+            : ResponseExtensions.EmptyProducts();
 
-    public static async Task<Results<NotFound<ErrorResponse>, Ok<Product>>> GetProduct(
+    public static async Task<Results<ProblemHttpResult, Ok<Product>>> GetProduct(
         int id,
         ProductsDbContext context
     ) =>
         await context.Products.FindAsync(id) is { } product
             ? Ok(product)
-            : NotFound(ProductNotFound(id));
+            : ResponseExtensions.ProductUnfound(id);
 
     public static async Task<Results<ValidationProblem, Created>> Create(
         Product product,
@@ -36,7 +35,7 @@ public static class ProductApi
     {
         var validationResult = await validator.ValidateAsync(product);
         if (!validationResult.IsValid)
-            return validationResult.ToErrorResponse();
+            return validationResult.ToValidationErrorResponse();
 
         await context.Products.AddAsync(product);
         await context.SaveChangesAsync();
