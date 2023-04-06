@@ -6,22 +6,22 @@ Accept: application/json
 GET https://localhost:7033/products/1
 Accept: application/json
 
-### Add product
+### Register product
 POST https://localhost:7033/products
 Content-Type: application/json
 
 {
-  "name": "aaa"
+  "name": "Laptop",
+  "locationCode": "2010",
+  "category": "Tech"
 }
 
-### Update product
+### Change location
 PUT https://localhost:7033/products/1
 Content-Type: application/json
 
 {
-  "id": 1,
-  "name": "Do A",
-  "IsComplete": true
+  "locationCode": "2020"
 }
 
 

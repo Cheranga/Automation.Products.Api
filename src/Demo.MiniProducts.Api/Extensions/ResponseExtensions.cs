@@ -1,10 +1,9 @@
 using System.Net;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using static Microsoft.AspNetCore.Http.TypedResults;
 
-namespace Demo.MiniProducts.Api;
+namespace Demo.MiniProducts.Api.Extensions;
 
 public static class ResponseExtensions
 {
@@ -26,7 +25,7 @@ public static class ResponseExtensions
         );
 
     public static ProblemHttpResult ProductUnfound(
-        int productId,
+        string productId,
         string message = "product not found"
     ) =>
         Problem(

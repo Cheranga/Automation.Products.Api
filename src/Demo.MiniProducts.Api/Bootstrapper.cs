@@ -1,5 +1,6 @@
-﻿using Demo.MiniProducts.Api.Models;
+﻿using Demo.MiniProducts.Api.DataAccess;
 using FluentValidation;
+using HybridModelBinding;
 using Microsoft.EntityFrameworkCore;
 
 namespace Demo.MiniProducts.Api;
@@ -10,7 +11,7 @@ public static class Bootstrapper
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        ReisterSwagger(builder);
+        RegisterSwagger(builder);
         RegisterValidators(builder);
         RegisterDataAccess(builder);
 
@@ -18,7 +19,7 @@ public static class Bootstrapper
         return builder.Build();
     }
 
-    private static void ReisterSwagger(WebApplicationBuilder builder)
+    private static void RegisterSwagger(WebApplicationBuilder builder)
     {
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
