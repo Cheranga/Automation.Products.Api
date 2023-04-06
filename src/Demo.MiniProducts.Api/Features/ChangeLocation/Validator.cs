@@ -7,6 +7,8 @@ public class Validator : ModelValidatorBase<ChangeLocationRequest>
 {
     public Validator()
     {
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("invalid product id");
+
         RuleFor(x => x.LocationCode)
             .NotNull()
             .WithMessage("cannot be null")

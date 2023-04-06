@@ -2,6 +2,7 @@ using System.Net.Mime;
 using Demo.MiniProducts.Api;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Features.GetAllProducts;
+using HybridModelBinding;
 using Microsoft.OpenApi.Models;
 
 const string Route = "products";
