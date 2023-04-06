@@ -1,11 +1,11 @@
-using Demo.MiniProducts.Api.Requests;
+using Demo.MiniProducts.Api.Core;
 using FluentValidation;
 
-namespace Demo.MiniProducts.Api;
+namespace Demo.MiniProducts.Api.Features.RegisterProduct;
 
-public class RegisterProductRequestValidator : AbstractValidator<RegisterProductRequest>
+public class Validator : ModelValidatorBase<RegisterProductRequest>
 {
-    public RegisterProductRequestValidator()
+    public Validator()
     {
         RuleFor(x => x.Name)
             .NotNull()
@@ -18,20 +18,8 @@ public class RegisterProductRequestValidator : AbstractValidator<RegisterProduct
             .WithMessage("cannot be null")
             .NotEmpty()
             .WithMessage("cannot be empty");
-    }
-}
-
-public class ChangeLocationRequestValidator : AbstractValidator<ChangeLocationRequest>
-{
-    public ChangeLocationRequestValidator()
-    {
+        
         RuleFor(x => x.LocationCode)
-            .NotNull()
-            .WithMessage("cannot be null")
-            .NotEmpty()
-            .WithMessage("cannot be empty");
-
-        RuleFor(x => x.Id)
             .NotNull()
             .WithMessage("cannot be null")
             .NotEmpty()

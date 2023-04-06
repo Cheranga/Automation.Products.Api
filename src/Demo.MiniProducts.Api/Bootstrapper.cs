@@ -1,4 +1,4 @@
-﻿using Demo.MiniProducts.Api.Models;
+﻿using Demo.MiniProducts.Api.DataAccess;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 

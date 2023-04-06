@@ -1,6 +1,7 @@
-using Demo.MiniProducts.Api.Dto;
-using Demo.MiniProducts.Api.Models;
-using Demo.MiniProducts.Api.Requests;
+using Demo.MiniProducts.Api.DataAccess;
+using Demo.MiniProducts.Api.Features;
+using Demo.MiniProducts.Api.Features.FindById;
+using Demo.MiniProducts.Api.Features.RegisterProduct;
 
 namespace Demo.MiniProducts.Api.Extensions;
 
@@ -10,6 +11,7 @@ public static class DtoExtensions
         new(
             product.Id.ToString(),
             product.Name,
+            product.LocationCode,
             product.Category,
             product.IsActive,
             product.IsOnPromotion
@@ -23,6 +25,7 @@ public static class DtoExtensions
         {
             Name = dto.Name,
             Category = dto.Category,
+            LocationCode = dto.LocationCode,
             IsActive = true,
             IsOnPromotion = false
         };
