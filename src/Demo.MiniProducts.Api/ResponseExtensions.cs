@@ -26,7 +26,7 @@ public static class ResponseExtensions
         );
 
     public static ProblemHttpResult ProductUnfound(
-        int productId,
+        string productId,
         string message = "product not found"
     ) =>
         Problem(

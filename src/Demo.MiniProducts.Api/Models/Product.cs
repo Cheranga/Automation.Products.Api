@@ -6,7 +6,11 @@ public class Product
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public bool IsComplete { get; set; }
+
+    public string LocationCode { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public string Category { get; set; } = string.Empty;
+    public bool IsOnPromotion { get; set; }
 }
 
 public class ProductsDbContext : DbContext
