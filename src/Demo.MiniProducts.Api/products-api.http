@@ -11,6 +11,7 @@ POST https://localhost:7033/products
 Content-Type: application/json
 
 {
+  "productId": "PROD-1",
   "name": "Laptop",
   "locationCode": "2010",
   "category": "Tech"

@@ -10,8 +10,8 @@ using Tables = Storage.Table.Helper.Bootstrapper;
 var host = Host.CreateDefaultBuilder()
     .ConfigureServices(services =>
     {
-        Queues.RegisterWithConnectionString(services, "test", "UseDevelopmentStorage=true");
-        Tables.RegisterWithConnectionString(services, "students", "UseDevelopmentStorage=true");
+        Queues.RegisterMessagingWithConnectionString(services, "test", "UseDevelopmentStorage=true");
+        Tables.RegisterTablesWithConnectionString(services, "students", "UseDevelopmentStorage=true");
     })
     .Build();
 

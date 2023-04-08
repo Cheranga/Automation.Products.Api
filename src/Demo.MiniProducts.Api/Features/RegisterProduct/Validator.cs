@@ -7,6 +7,12 @@ public class Validator : ModelValidatorBase<RegisterProductRequest>
 {
     public Validator()
     {
+        RuleFor(x => x.ProductId)
+            .NotNull()
+            .WithMessage("cannot be null")
+            .NotEmpty()
+            .WithMessage("cannot be empty");
+
         RuleFor(x => x.Name)
             .NotNull()
             .WithMessage("cannot be null")

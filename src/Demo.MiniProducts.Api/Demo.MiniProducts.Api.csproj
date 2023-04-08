@@ -18,6 +18,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Storage.Queue.Helper\Storage.Queue.Helper.csproj" />
+        <ProjectReference Include="..\Storage.Table.Helper\Storage.Table.Helper.csproj" />
     </ItemGroup>
 
 </Project>

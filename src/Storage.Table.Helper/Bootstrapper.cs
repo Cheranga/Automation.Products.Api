@@ -6,7 +6,7 @@ namespace Storage.Table.Helper;
 
 public static class Bootstrapper
 {
-    public static void RegisterWithConnectionString(
+    public static void RegisterTablesWithConnectionString(
         this IServiceCollection services,
         string name,
         string connectionstring
@@ -20,7 +20,7 @@ public static class Bootstrapper
         services.AddSingleton<ITableService, TableService>();
     }
 
-    public static void RegisterWithManagedIdentity(
+    public static void RegisterTablesWithManagedIdentity(
         this IServiceCollection services,
         string name,
         string storageAccountUrl

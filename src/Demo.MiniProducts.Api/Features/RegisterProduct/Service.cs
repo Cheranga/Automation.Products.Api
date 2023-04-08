@@ -4,12 +4,15 @@ using Demo.MiniProducts.Api.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Azure;
 using Storage.Queue.Helper;
+using Storage.Table.Helper;
 using static Microsoft.AspNetCore.Http.TypedResults;
 
 namespace Demo.MiniProducts.Api.Features.RegisterProduct;
 
 public record RegisterProductRequest(
+    [FromBody] string ProductId,
     [FromBody] string Name,
     [FromBody] string LocationCode,
     [FromBody] string Category
@@ -21,30 +24,47 @@ public static class Service
 
     public static async Task<Results<ValidationProblem, Created>> RegisterProduct(
         [FromBody] RegisterProductRequest request,
-        [FromServices] ProductsDbContext context,
         [FromServices] IValidator<RegisterProductRequest> validator,
         [FromServices] RegisterProductSettings settings,
-        [FromServices] IQueueService queueService
+        [FromServices] IQueueService queueService,
+        [FromServices] ITableService tableService
     )
     {
         var validationResult = await validator.ValidateAsync(request);
         if (!validationResult.IsValid)
             return validationResult.ToValidationErrorResponse();
 
-        var registeredProduct = await context.Products.AddAsync(request.ToWriteModel());
-        await context.SaveChangesAsync();
-
         var @event = new ProductRegisteredEvent(
-            registeredProduct.Entity.Id.ToString(),
+            request.ProductId,
             request.Category,
             DateTime.UtcNow
         );
-        var op = await queueService.PublishAsync(
+
+        var token = new CancellationToken();
+        request.ToDataModel();
+
+        var upsertOperation = await tableService.UpsertAsync(
             settings.Category,
-            new CancellationToken(),
+            settings.Table,
+            request.ToDataModel(),
+            true,
+            token
+        );
+
+        var publishEventOperation = await queueService.PublishAsync(
+            settings.Category,
+            token,
             (settings.Queue, () => JsonSerializer.Serialize(@event))
         );
 
-        return Created($"/{Route}/{registeredProduct.Entity.Id}");
+        return Created($"/{Route}/{request.ProductId}");
     }
+
+    private static ProductDataModel ToDataModel(this RegisterProductRequest request) =>
+        ProductDataModel.New(
+            request.Category,
+            request.ProductId,
+            request.Name,
+            request.LocationCode
+        );
 }
