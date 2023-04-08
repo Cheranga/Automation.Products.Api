@@ -18,7 +18,7 @@ public class Validator : ModelValidatorBase<RegisterProductRequest>
             .WithMessage("cannot be null")
             .NotEmpty()
             .WithMessage("cannot be empty");
-        
+
         RuleFor(x => x.LocationCode)
             .NotNull()
             .WithMessage("cannot be null")
