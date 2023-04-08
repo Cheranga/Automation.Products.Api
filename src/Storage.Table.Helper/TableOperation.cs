@@ -11,12 +11,23 @@ public abstract class TableOperation
     }
 
     public static TableOperation Success() => new SuccessOperation();
+    public static TableOperation Success<T>(T data) => new SuccessOperation<T>(data);
 
     public static TableOperation Failure(TableOperationError error) =>
         FailedOperation.New(error);
 
     public sealed class SuccessOperation : TableOperation
     {
+    }
+
+    public sealed class SuccessOperation<T> : TableOperation
+    {
+        public T Data { get; }
+
+        public SuccessOperation(T data)
+        {
+            Data = data;
+        }
     }
 
     public sealed class FailedOperation : TableOperation

@@ -22,6 +22,8 @@ PUT https://localhost:7033/products/1
 Content-Type: application/json
 
 {
+  "category": "Tech",
+  "id": "PROD-1",
   "locationCode": "2020"
 }
 

@@ -63,4 +63,28 @@ internal static class AzureTableStorageWrapper
                     TableOperationError.New(err.Code, err.Message, err.ToException())
                 )
         );
+
+    public static Aff<TableOperation> GetEntityAsync<T>(
+        TableClient client,
+        string partitionKey,
+        string rowKey,
+        CancellationToken token
+    ) where T : class, ITableEntity =>
+        (
+            from op in AffMaybe<Response<T>>(
+                async () =>
+                    await client.GetEntityAsync<T>(partitionKey, rowKey, cancellationToken: token)
+            )
+            from _ in guardnot(
+                op.GetRawResponse().IsError,
+                Error.New(ErrorCodes.EntityDoesNotExist, ErrorMessages.EntityDoesNotExist)
+            )
+            select op
+        ).Match(
+            response => TableOperation.Success(response.Value),
+            err =>
+                TableOperation.Failure(
+                    TableOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
 }

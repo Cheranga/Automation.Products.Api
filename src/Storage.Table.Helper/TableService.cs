@@ -14,6 +14,14 @@ public interface ITableService
         bool merge,
         CancellationToken token
     ) where T : ITableEntity;
+
+    Task<TableOperation> GetAsync<T>(
+        string category,
+        string table,
+        string partitionKey,
+        string rowKey,
+        CancellationToken token
+    ) where T : class, ITableEntity;
 }
 
 internal class TableService : ITableService
@@ -38,6 +46,28 @@ internal class TableService : ITableService
             ).Run()
         ).Match(
             op => op,
+            err =>
+                TableOperation.Failure(
+                    TableOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
+
+    public async Task<TableOperation> GetAsync<T>(
+        string category,
+        string table,
+        string partitionKey,
+        string rowKey,
+        CancellationToken token
+    ) where T : class, ITableEntity =>
+        (
+            await (
+                from sc in GetServiceClient(_factory, category)
+                from tc in GetTableClient(sc, table)
+                from op in GetEntityAsync<T>(tc, partitionKey, rowKey, token)
+                select op
+            ).Run()
+        ).Match(
+            operation => operation,
             err =>
                 TableOperation.Failure(
                     TableOperationError.New(err.Code, err.Message, err.ToException())
