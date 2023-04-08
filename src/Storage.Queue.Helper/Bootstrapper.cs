@@ -19,10 +19,7 @@ public static class Bootstrapper
         {
             builder
                 .AddQueueServiceClient(connectionString)
-                .ConfigureOptions(options =>
-                {
-                    options.MessageEncoding = QueueMessageEncoding.Base64;
-                })
+                .ConfigureOptions(options => { options.MessageEncoding = QueueMessageEncoding.Base64; })
                 .WithName(name);
         });
 
@@ -39,10 +36,7 @@ public static class Bootstrapper
         {
             builder
                 .AddQueueServiceClient(new Uri(storageAccountUrl))
-                .ConfigureOptions(options =>
-                {
-                    options.MessageEncoding = QueueMessageEncoding.Base64;
-                })
+                .ConfigureOptions(options => { options.MessageEncoding = QueueMessageEncoding.Base64; })
                 .WithCredential(new ManagedIdentityCredential())
                 .WithName(name);
         });

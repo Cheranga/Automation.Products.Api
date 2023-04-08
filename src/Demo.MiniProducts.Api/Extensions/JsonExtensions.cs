@@ -14,7 +14,7 @@ public static class JsonExtensions
                 Error = (_, args) => args.ErrorContext.Handled = true
             });
 
-            return record ?? new();
+            return record ?? new T();
         }
     }
 }

@@ -3,6 +3,7 @@ using Azure;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using LanguageExt;
+using LanguageExt.Common;
 using Microsoft.Extensions.Azure;
 using static LanguageExt.Prelude;
 
@@ -30,7 +31,7 @@ internal static class AzureQueueStorageWrapper
             from qc in EffMaybe<QueueClient>(() => serviceClient.GetQueueClient(queue))
             from _ in guard(
                 qc.Exists(),
-                QueueOperationError.New(ErrorCodes.QueueUnavailable, ErrorMessages.QueueUnavailable)
+                Error.New(ErrorCodes.QueueUnavailable, ErrorMessages.QueueUnavailable)
             )
             select qc
         ).MapFail(
@@ -50,6 +51,16 @@ internal static class AzureQueueStorageWrapper
         CancellationToken token
     ) =>
         (
+            from _1 in guard(
+                    visibilitySeconds >= 0
+                        && timeToLiveSeconds >= 0
+                        && timeToLiveSeconds >= visibilitySeconds,
+                    Error.New(
+                        ErrorCodes.InvalidMessagePublishSettings,
+                        ErrorMessages.InvalidMessagePublishSettings
+                    )
+                )
+                .ToEff()
             from op in AffMaybe<Response<SendReceipt>>(
                 async () =>
                     await queueClient.SendMessageAsync(
@@ -59,20 +70,20 @@ internal static class AzureQueueStorageWrapper
                         token
                     )
             )
-            from a in guardnot(
+            from _2 in guardnot(
                 op.GetRawResponse().IsError,
-                QueueOperationError.New(
-                    ErrorCodes.PublishFailResponse,
-                    op.GetRawResponse().ReasonPhrase
-                )
+                Error.New(ErrorCodes.PublishFailResponse, op.GetRawResponse().ReasonPhrase)
             )
             select op
         ).Match(
             _ => QueueOperation.Success(),
-            _ =>
+            err =>
                 QueueOperation.Failure(
-                    ErrorCodes.PublishMessageError,
-                    ErrorMessages.PublishMessageError
+                    QueueOperationError.New(
+                        ErrorCodes.PublishMessageError,
+                        ErrorMessages.PublishMessageError,
+                        err.ToException()
+                    )
                 )
         );
 
@@ -80,5 +91,25 @@ internal static class AzureQueueStorageWrapper
         QueueClient queueClient,
         Func<string> content,
         CancellationToken token
-    ) => Publish(queueClient, content, 0, 0, token);
+    ) =>
+        (
+            from op in AffMaybe<Response<SendReceipt>>(
+                async () => await queueClient.SendMessageAsync(content(), token)
+            )
+            from _ in guardnot(
+                op.GetRawResponse().IsError,
+                Error.New(ErrorCodes.PublishFailResponse, op.GetRawResponse().ReasonPhrase)
+            )
+            select op
+        ).Match(
+            _ => QueueOperation.Success(),
+            err =>
+                QueueOperation.Failure(
+                    QueueOperationError.New(
+                        ErrorCodes.PublishMessageError,
+                        ErrorMessages.PublishMessageError,
+                        err.ToException()
+                    )
+                )
+        );
 }

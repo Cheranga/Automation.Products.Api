@@ -31,32 +31,44 @@ internal class QueueService : IQueueService
         CancellationToken token,
         (string queue, Func<string> content) messageInfo
     ) =>
-        (
-            await (
-                from sc in GetServiceClient(_factory, category)
-                from qc in GetQueueClient(sc, messageInfo.queue)
-                from op in Publish(qc, messageInfo.content, token)
-                select op
-            ).Run()
-        ).Match(op => op, err => QueueOperation.Failure(err.Code, err.Message));
+    (
+        await (
+            from sc in GetServiceClient(_factory, category)
+            from qc in GetQueueClient(sc, messageInfo.queue)
+            from op in Publish(qc, messageInfo.content, token)
+            select op
+        ).Run()
+    ).Match(
+        op => op,
+        err =>
+            QueueOperation.Failure(
+                QueueOperationError.New(err.Code, err.Message, err.ToException())
+            )
+    );
 
     public async Task<QueueOperation> PublishAsync(
         string category,
         CancellationToken token,
         (string queue, Func<string> content, int visibilitySeconds, int timeToLiveSeconds) messageInfo
     ) =>
-        (
-            await (
-                from sc in GetServiceClient(_factory, category)
-                from qc in GetQueueClient(sc, messageInfo.queue)
-                from op in Publish(
-                    qc,
-                    messageInfo.content,
-                    messageInfo.visibilitySeconds,
-                    messageInfo.timeToLiveSeconds,
-                    token
-                )
-                select op
-            ).Run()
-        ).Match(op => op, err => QueueOperation.Failure(err.Code, err.Message, err.ToException()));
+    (
+        await (
+            from sc in GetServiceClient(_factory, category)
+            from qc in GetQueueClient(sc, messageInfo.queue)
+            from op in Publish(
+                qc,
+                messageInfo.content,
+                messageInfo.visibilitySeconds,
+                messageInfo.timeToLiveSeconds,
+                token
+            )
+            select op
+        ).Run()
+    ).Match(
+        op => op,
+        err =>
+            QueueOperation.Failure(
+                QueueOperationError.New(err.Code, err.Message, err.ToException())
+            )
+    );
 }

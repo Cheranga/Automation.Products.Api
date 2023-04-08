@@ -9,6 +9,7 @@ public static class ErrorCodes
     public const int QueueUnavailable = 501;
     public const int PublishMessageError = 502;
     public const int PublishFailResponse = 503;
+    public const int InvalidMessagePublishSettings = 504;
 }
 
 [ExcludeFromCodeCoverage]
@@ -22,4 +23,6 @@ public static class ErrorMessages
 
     public const string PublishFailResponse =
         "publish to queue operation returned unsuccessful response";
+
+    public const string InvalidMessagePublishSettings = "invalid settings to publish message";
 }

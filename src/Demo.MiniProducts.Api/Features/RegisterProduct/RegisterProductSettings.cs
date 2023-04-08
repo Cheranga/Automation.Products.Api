@@ -1,3 +1,3 @@
 namespace Demo.MiniProducts.Api.Features.RegisterProduct;
 
-public record RegisterProductSettings(string Category, string Queue);
+public record RegisterProductSettings(string Category, string Queue, string ConnectionString);

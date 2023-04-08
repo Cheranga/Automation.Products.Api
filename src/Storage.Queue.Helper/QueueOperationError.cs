@@ -6,8 +6,7 @@ namespace Storage.Queue.Helper;
 [ExcludeFromCodeCoverage]
 public class QueueOperationException : Exception
 {
-    public QueueOperationException(Error error)
-        : base(error.Message, error.ToException()) { }
+    public QueueOperationException(Error error) : base(error.Message, error.ToException()) { }
 }
 
 [ExcludeFromCodeCoverage]
@@ -33,7 +32,11 @@ public record QueueOperationError : Error
     public override ErrorException ToErrorException() =>
         ErrorException.New(Code, Message, ErrorException.New(_exception));
 
-    public static Error New(int errorCode, string errorMessage, Exception? exception = null) =>
+    public static QueueOperationError New(
+        int errorCode,
+        string errorMessage,
+        Exception? exception = null
+    ) =>
         exception is null
             ? new QueueOperationError(Error.New(errorCode, errorMessage))
             : new QueueOperationError(Error.New(errorCode, errorMessage, exception!));

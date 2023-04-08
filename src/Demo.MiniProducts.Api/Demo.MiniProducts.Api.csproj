@@ -4,20 +4,20 @@
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-<!--        <AnalysisMode>Recommended</AnalysisMode>-->
+        <!--        <AnalysisMode>Recommended</AnalysisMode>-->
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.5.1" />
-      <PackageReference Include="HybridModelBinding" Version="0.18.0" />
-      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.4" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.4" />
-      <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.5.1" />
+        <PackageReference Include="HybridModelBinding" Version="0.18.0" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.4" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.4" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Storage.Queue.Helper\Storage.Queue.Helper.csproj" />
+        <ProjectReference Include="..\Storage.Queue.Helper\Storage.Queue.Helper.csproj" />
     </ItemGroup>
 
 </Project>

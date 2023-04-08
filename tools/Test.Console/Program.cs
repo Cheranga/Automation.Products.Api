@@ -6,10 +6,7 @@ using Test.Console;
 using Queues = Storage.Queue.Helper.Bootstrapper;
 
 var host = Host.CreateDefaultBuilder()
-    .ConfigureServices(services =>
-    {
-        services.RegisterWithConnectionString("test", "UseDevelopmentStorage=true");
-    })
+    .ConfigureServices(services => { services.RegisterWithConnectionString("test", "UseDevelopmentStorage=true"); })
     .Build();
 
 await DoQueues(host);
@@ -22,7 +19,7 @@ static async Task DoQueues(IHost host)
     var op = await queueService.PublishAsync(
         "test",
         new CancellationToken(),
-        ("registrations", () => JsonSerializer.Serialize(@event), 5, 10)
+        ("registrations1", () => JsonSerializer.Serialize(@event), 5, 10)
     );
 
     Console.WriteLine(
@@ -30,7 +27,7 @@ static async Task DoQueues(IHost host)
         {
             QueueOperation.SuccessOperation => "successfully published",
             QueueOperation.FailedOperation f
-                => $"ErrorCode:{f.ErrorCode}, ErrorMessage:{f.ErrorMessage}, Exception:{f.Exception}",
+                => $"ErrorCode:{f.Error.Code}, ErrorMessage:{f.Error.Message}, Exception:{f.Error.Exception}",
             _ => "unsupported operation"
         }
     );

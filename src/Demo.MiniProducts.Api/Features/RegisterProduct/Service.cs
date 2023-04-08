@@ -39,7 +39,7 @@ public static class Service
             request.Category,
             DateTime.UtcNow
         );
-        await queueService.PublishAsync(
+        var op = await queueService.PublishAsync(
             settings.Category,
             new CancellationToken(),
             (settings.Queue, () => JsonSerializer.Serialize(@event))
