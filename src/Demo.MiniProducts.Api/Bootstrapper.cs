@@ -1,6 +1,5 @@
 ﻿using Demo.MiniProducts.Api.DataAccess;
 using FluentValidation;
-using HybridModelBinding;
 using Microsoft.EntityFrameworkCore;
 
 namespace Demo.MiniProducts.Api;

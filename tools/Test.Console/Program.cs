@@ -1,9 +1,9 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-using Microsoft.Extensions.Azure;
+﻿using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Storage.Blob.Helper;
+using Storage.Queue.Helper;
+using Test.Console;
+using Queues = Storage.Queue.Helper.Bootstrapper;
 
 var host = Host.CreateDefaultBuilder()
     .ConfigureServices(services =>
@@ -12,30 +12,26 @@ var host = Host.CreateDefaultBuilder()
     })
     .Build();
 
-var blobService = host.Services.GetRequiredService<IBlobService>();
-var operation = await blobService.UploadAsync(
-    ("testcontainer", "testfile.txt", "Cheranga Hatangala", true),
-    "test",
-    new CancellationToken()
-);
+await DoQueues(host);
 
-var a = blobService.FunkyUploadAsync(("testcontainer", "AU/DATA/testfile.txt", "Cheranga Hatangala", true),
-    "test",
-    new CancellationToken());
-
-PrintResults(operation);
-
-static void PrintResults(BlobOperation operation)
+static async Task DoQueues(IHost host)
 {
-    switch (operation)
-    {
-        case BlobOperation.SuccessOperation:
-            Console.WriteLine("successful");
-            return;
-        case BlobOperation.FailedOperation f:
-            Console.WriteLine($"{f.ErrorCode} with {f.ErrorMessage}");
-            return;
-        default:
-            throw new NotSupportedException();
-    }
+    var queueService = host.Services.GetRequiredService<IQueueService>();
+    var @event = new ProductRegistered("Laptop", "Tech", DateTime.UtcNow);
+
+    var op = await queueService.PublishAsync(
+        "test",
+        new CancellationToken(),
+        ("registrations", () => JsonSerializer.Serialize(@event), 5, 10)
+    );
+
+    Console.WriteLine(
+        op switch
+        {
+            QueueOperation.SuccessOperation => "successfully published",
+            QueueOperation.FailedOperation f
+                => $"ErrorCode:{f.ErrorCode}, ErrorMessage:{f.ErrorMessage}, Exception:{f.Exception}",
+            _ => "unsupported operation"
+        }
+    );
 }

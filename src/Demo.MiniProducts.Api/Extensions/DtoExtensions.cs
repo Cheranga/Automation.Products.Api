@@ -1,5 +1,4 @@
 using Demo.MiniProducts.Api.DataAccess;
-using Demo.MiniProducts.Api.Features;
 using Demo.MiniProducts.Api.Features.FindById;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 
