@@ -1,4 +1,5 @@
 using Demo.MiniProducts.Api.Core;
+using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;

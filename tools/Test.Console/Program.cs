@@ -15,7 +15,6 @@ var host = Host.CreateDefaultBuilder()
     })
     .Build();
 
-//await DoQueues(host);
 await DoTables(host);
 
 static async Task DoQueues(IHost host)

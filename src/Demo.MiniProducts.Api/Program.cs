@@ -34,7 +34,7 @@ productsApi
     .WithOpenApi();
 
 productsApi
-    .MapPut("/", Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation)
+    .MapPut("/{category}/{id}", Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation)
     .WithName(nameof(Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation))
     .WithSummary("Update product by searching for product id.")
     .WithOpenApi();

@@ -21,8 +21,4 @@
         <ProjectReference Include="..\Storage.Table.Helper\Storage.Table.Helper.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="DataAccess" />
-    </ItemGroup>
-
 </Project>

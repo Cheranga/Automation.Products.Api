@@ -1,5 +1,5 @@
-using System.Reflection;
 using System.Text.Json;
+using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Extensions;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentValidation;
@@ -10,22 +10,6 @@ using Storage.Table.Helper;
 using static Microsoft.AspNetCore.Http.TypedResults;
 
 namespace Demo.MiniProducts.Api.Features.ChangeLocation;
-
-public class ChangeLocationRequest
-{
-    public string Category { get; set; } = string.Empty;
-    public string Id { get; set; } = string.Empty;
-    public string LocationCode { get; set; } = string.Empty;
-
-    public static async ValueTask<ChangeLocationRequest> BindAsync(
-        HttpContext context,
-        ParameterInfo _
-    )
-    {
-        var record = await context.Request.Body.ToModel<ChangeLocationRequest>();
-        return record;
-    }
-}
 
 public static class Service
 {
@@ -76,13 +60,7 @@ public static class Service
             getProductOperation as TableOperation.SuccessOperation<ProductDataModel>
         )!.Data;
 
-        await UpdateLocation(
-            product,
-            request,
-            registerSettings,
-            tableService,
-            token
-        );
+        await UpdateLocation(product, request, registerSettings, tableService, token);
 
         await PublishLocationChangedEvent(
             product.LocationCode,
@@ -95,11 +73,13 @@ public static class Service
         return NoContent();
     }
 
-    private static async Task UpdateLocation(ProductDataModel product,
+    private static async Task UpdateLocation(
+        ProductDataModel product,
         ChangeLocationRequest request,
         RegisterProductSettings registerSettings,
         ITableService tableService,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         await tableService.UpsertAsync(
             registerSettings.Category,

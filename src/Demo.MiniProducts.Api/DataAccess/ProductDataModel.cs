@@ -1,7 +1,7 @@
 using Azure;
 using Azure.Data.Tables;
 
-namespace Demo.MiniProducts.Api.Features.RegisterProduct;
+namespace Demo.MiniProducts.Api.DataAccess;
 
 public class ProductDataModel : ITableEntity
 {

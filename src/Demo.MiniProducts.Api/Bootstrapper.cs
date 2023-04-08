@@ -75,9 +75,5 @@ public static class Bootstrapper
             settings!.Category,
             settings.ConnectionString
         );
-
-        // builder.Services.AddDbContext<ProductsDbContext>(
-        //     optionsBuilder => optionsBuilder.UseInMemoryDatabase(nameof(ProductsDbContext))
-        // );
     }
 }

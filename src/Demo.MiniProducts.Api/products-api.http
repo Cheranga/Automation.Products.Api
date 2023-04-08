@@ -7,20 +7,18 @@ POST https://localhost:7033/products
 Content-Type: application/json
 
 {
-  "productId": "PROD-1",
-  "name": "Laptop",
-  "locationCode": "2010",
+  "productId": "PROD-2",
+  "name": "Mouse",
+  "locationCode": "2020",
   "category": "Tech"
 }
 
 ### Change location
-PUT https://localhost:7033/products
+PUT https://localhost:7033/products/tech/prod-2
 Content-Type: application/json
 
-{
-  "category": "Tech",
-  "id": "PROD-1",
-  "locationCode": "2020"
+{  
+  "locationCode": "3020"
 }
 
 

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -8,13 +9,6 @@ using Storage.Table.Helper;
 using static Microsoft.AspNetCore.Http.TypedResults;
 
 namespace Demo.MiniProducts.Api.Features.RegisterProduct;
-
-public record RegisterProductRequest(
-    [FromBody] string ProductId,
-    [FromBody] string Name,
-    [FromBody] string LocationCode,
-    [FromBody] string Category
-);
 
 public static class Service
 {
