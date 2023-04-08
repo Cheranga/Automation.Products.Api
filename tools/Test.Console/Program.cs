@@ -47,6 +47,7 @@ static async Task DoTables(IHost host)
         "students",
         "techstudents",
         StudentEntity.New("IT", "1", "Cheranga"),
+        true,
         new CancellationToken()
     );
 }

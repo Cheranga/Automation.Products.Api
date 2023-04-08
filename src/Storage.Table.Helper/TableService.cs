@@ -1,12 +1,19 @@
 using Azure.Data.Tables;
+using LanguageExt;
 using Microsoft.Extensions.Azure;
+using static Storage.Table.Helper.AzureTableStorageWrapper;
 
 namespace Storage.Table.Helper;
 
 public interface ITableService
 {
-    Task UpsertAsync<T>(string category, string table, T data, CancellationToken token)
-        where T : ITableEntity;
+    Task<TableOperation> UpsertAsync<T>(
+        string category,
+        string table,
+        T data,
+        bool merge,
+        CancellationToken token
+    ) where T : ITableEntity;
 }
 
 internal class TableService : ITableService
@@ -15,12 +22,25 @@ internal class TableService : ITableService
 
     public TableService(IAzureClientFactory<TableServiceClient> factory) => _factory = factory;
 
-    public async Task UpsertAsync<T>(string category, string table, T data, CancellationToken token)
-        where T : ITableEntity
-    {
-        var serviceClient = _factory.CreateClient(category);
-        var tableClient = serviceClient.GetTableClient(table);
-        var operation = await tableClient.UpsertEntityAsync(data, TableUpdateMode.Merge, token);
-        if (operation.IsError) throw new Exception("error");
-    }
+    public async Task<TableOperation> UpsertAsync<T>(
+        string category,
+        string table,
+        T data,
+        bool merge,
+        CancellationToken token
+    ) where T : ITableEntity =>
+        (
+            await (
+                from sc in GetServiceClient(_factory, category)
+                from tc in GetTableClient(sc, table)
+                from op in Upsert(tc, data, token, merge)
+                select op
+            ).Run()
+        ).Match(
+            op => op,
+            err =>
+                TableOperation.Failure(
+                    TableOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
 }
