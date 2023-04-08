@@ -17,8 +17,8 @@ public class ProductDataModel : ITableEntity
     public static ProductDataModel New(string category, string productId, string name, string locationCode) =>
         new()
         {
-            PartitionKey = category,
-            RowKey = productId,
+            PartitionKey = category.ToUpper(),
+            RowKey = productId.ToUpper(),
             Category = category,
             ProductId = productId,
             Name = name,

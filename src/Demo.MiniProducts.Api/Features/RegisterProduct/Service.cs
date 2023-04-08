@@ -1,10 +1,8 @@
 using System.Text.Json;
-using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Azure;
 using Storage.Queue.Helper;
 using Storage.Table.Helper;
 using static Microsoft.AspNetCore.Http.TypedResults;

@@ -1,9 +1,5 @@
-### Get all products
-GET https://localhost:7033/products
-Accept: application/json
-
 ### Get product by id
-GET https://localhost:7033/products/1
+GET https://localhost:7033/products/tech/prod-1
 Accept: application/json
 
 ### Register product
@@ -18,7 +14,7 @@ Content-Type: application/json
 }
 
 ### Change location
-PUT https://localhost:7033/products/1
+PUT https://localhost:7033/products
 Content-Type: application/json
 
 {

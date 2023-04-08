@@ -63,7 +63,7 @@ internal class TableService : ITableService
             await (
                 from sc in GetServiceClient(_factory, category)
                 from tc in GetTableClient(sc, table)
-                from op in GetEntityAsync<T>(tc, partitionKey, rowKey, token)
+                from op in GetEntityAsync<T>(tc, partitionKey.ToUpper(), rowKey.ToUpper(), token)
                 select op
             ).Run()
         ).Match(

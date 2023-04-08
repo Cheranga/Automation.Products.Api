@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text.Json;
-using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Extensions;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentValidation;
