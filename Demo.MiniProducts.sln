@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Console", "tools\Test.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.Queue.Helper", "src\Storage.Queue.Helper\Storage.Queue.Helper.csproj", "{A0662FD2-6C30-46FD-8670-0F2C5D0FCC2E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.Table.Helper", "src\Storage.Table.Helper\Storage.Table.Helper.csproj", "{5412539D-20DD-401F-99AE-E89297E2D8B5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{A0662FD2-6C30-46FD-8670-0F2C5D0FCC2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A0662FD2-6C30-46FD-8670-0F2C5D0FCC2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A0662FD2-6C30-46FD-8670-0F2C5D0FCC2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5412539D-20DD-401F-99AE-E89297E2D8B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5412539D-20DD-401F-99AE-E89297E2D8B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5412539D-20DD-401F-99AE-E89297E2D8B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5412539D-20DD-401F-99AE-E89297E2D8B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

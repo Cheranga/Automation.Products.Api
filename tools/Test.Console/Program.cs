@@ -2,14 +2,21 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Storage.Queue.Helper;
+using Storage.Table.Helper;
 using Test.Console;
 using Queues = Storage.Queue.Helper.Bootstrapper;
+using Tables = Storage.Table.Helper.Bootstrapper;
 
 var host = Host.CreateDefaultBuilder()
-    .ConfigureServices(services => { services.RegisterWithConnectionString("test", "UseDevelopmentStorage=true"); })
+    .ConfigureServices(services =>
+    {
+        Queues.RegisterWithConnectionString(services, "test", "UseDevelopmentStorage=true");
+        Tables.RegisterWithConnectionString(services, "students", "UseDevelopmentStorage=true");
+    })
     .Build();
 
-await DoQueues(host);
+//await DoQueues(host);
+await DoTables(host);
 
 static async Task DoQueues(IHost host)
 {
@@ -30,5 +37,16 @@ static async Task DoQueues(IHost host)
                 => $"ErrorCode:{f.Error.Code}, ErrorMessage:{f.Error.Message}, Exception:{f.Error.Exception}",
             _ => "unsupported operation"
         }
+    );
+}
+
+static async Task DoTables(IHost host)
+{
+    var tableService = host.Services.GetRequiredService<ITableService>();
+    await tableService.UpsertAsync(
+        "students",
+        "techstudents",
+        StudentEntity.New("IT", "1", "Cheranga"),
+        new CancellationToken()
     );
 }
