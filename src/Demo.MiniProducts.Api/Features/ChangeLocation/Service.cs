@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Text.Json;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Extensions;
@@ -7,78 +6,114 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Storage.Queue.Helper;
-using static System.Int32;
+using Storage.Table.Helper;
 using static Microsoft.AspNetCore.Http.TypedResults;
 
 namespace Demo.MiniProducts.Api.Features.ChangeLocation;
-
-public class ChangeLocationRequest
-{
-    public int Id { get; set; }
-    public string LocationCode { get; set; } = string.Empty;
-
-    public static async ValueTask<ChangeLocationRequest> BindAsync(
-        HttpContext context,
-        ParameterInfo _
-    )
-    {
-        TryParse(context.GetRouteValue(nameof(Id))?.ToString(), out var id);
-        var record = await context.Request.Body.ToModel<ChangeLocationRequest>();
-        record.Id = id;
-        return record;
-    }
-}
 
 public static class Service
 {
     public static async Task<Results<ValidationProblem, NotFound, NoContent>> ChangeLocation(
         ChangeLocationRequest request,
         [FromServices] IValidator<ChangeLocationRequest> validator,
-        [FromServices] ProductsDbContext context,
-        [FromServices] UpdateProductSettings settings,
-        [FromServices] IQueueService queueService
+        [FromServices] UpdateProductSettings updateSettings,
+        [FromServices] RegisterProductSettings registerSettings,
+        [FromServices] IQueueService queueService,
+        [FromServices] ITableService tableService
     )
     {
         var validationResult = await validator.ValidateAsync(request);
         if (!validationResult.IsValid)
             return validationResult.ToValidationErrorResponse();
 
-        return await context.Products.FindAsync(request.Id) is { } product
-            ? await UpdateLocation(
-                context,
-                product,
-                request,
-                settings,
-                queueService,
-                new CancellationToken()
-            )
-            : NotFound();
+        return await UpdateLocation(
+            request,
+            updateSettings,
+            registerSettings,
+            queueService,
+            tableService,
+            new CancellationToken()
+        );
     }
 
     private static async Task<Results<ValidationProblem, NotFound, NoContent>> UpdateLocation(
-        ProductsDbContext context,
-        Product product,
         ChangeLocationRequest request,
-        UpdateProductSettings settings,
+        UpdateProductSettings updatedSettings,
+        RegisterProductSettings registerSettings,
+        IQueueService queueService,
+        ITableService tableService,
+        CancellationToken token
+    )
+    {
+        var getProductOperation = await tableService.GetAsync<ProductDataModel>(
+            registerSettings.Category,
+            registerSettings.Table,
+            request.Category,
+            request.Id,
+            token
+        );
+
+        if (getProductOperation is TableOperation.FailedOperation)
+            return NotFound();
+
+        var product = (
+            getProductOperation as TableOperation.SuccessOperation<ProductDataModel>
+        )!.Data;
+
+        await UpdateLocation(product, request, registerSettings, tableService, token);
+
+        await PublishLocationChangedEvent(
+            product.LocationCode,
+            request,
+            updatedSettings,
+            queueService,
+            token
+        );
+
+        return NoContent();
+    }
+
+    private static async Task UpdateLocation(
+        ProductDataModel product,
+        ChangeLocationRequest request,
+        RegisterProductSettings registerSettings,
+        ITableService tableService,
+        CancellationToken token
+    )
+    {
+        await tableService.UpsertAsync(
+            registerSettings.Category,
+            registerSettings.Table,
+            request.ToDataModel(product.Name, request.LocationCode),
+            true,
+            token
+        );
+    }
+
+    private static async Task PublishLocationChangedEvent(
+        string previousLocationCode,
+        ChangeLocationRequest request,
+        UpdateProductSettings updatedSettings,
         IQueueService queueService,
         CancellationToken token
     )
     {
         var @event = new LocationChangedEvent(
-            request.Id.ToString(),
-            product.LocationCode,
+            request.Id,
+            previousLocationCode,
             request.LocationCode
         );
-        
-        product.LocationCode = request.LocationCode;
-        await context.SaveChangesAsync(token);
 
         await queueService.PublishAsync(
-            settings.Category,
+            updatedSettings.Category,
             token,
-            (settings.Queue, () => JsonSerializer.Serialize(@event))
+            (updatedSettings.Queue, () => JsonSerializer.Serialize(@event))
         );
-
-        return NoContent();
     }
+
+    private static ProductDataModel ToDataModel(
+        this ChangeLocationRequest request,
+        string name,
+        string locationCode
+    ) => ProductDataModel.New(request.Category, request.Id, name, locationCode);
 }

@@ -9,7 +9,7 @@ namespace Storage.Queue.Helper;
 [ExcludeFromCodeCoverage]
 public static class Bootstrapper
 {
-    public static void RegisterWithConnectionString(
+    public static void RegisterMessagingWithConnectionString(
         this IServiceCollection services,
         string name,
         string connectionString
@@ -26,7 +26,7 @@ public static class Bootstrapper
         services.AddSingleton<IQueueService, QueueService>();
     }
 
-    public static void RegisterWithManagedIdentity(
+    public static void RegisterMessagingWithManagedIdentity(
         this IServiceCollection services,
         string name,
         string storageAccountUrl

@@ -1,9 +1,5 @@
-### Get all products
-GET https://localhost:7033/products
-Accept: application/json
-
 ### Get product by id
-GET https://localhost:7033/products/1
+GET https://localhost:7033/products/tech/prod-1
 Accept: application/json
 
 ### Register product
@@ -11,17 +7,18 @@ POST https://localhost:7033/products
 Content-Type: application/json
 
 {
-  "name": "Laptop",
-  "locationCode": "2010",
+  "productId": "PROD-2",
+  "name": "Mouse",
+  "locationCode": "2020",
   "category": "Tech"
 }
 
 ### Change location
-PUT https://localhost:7033/products/1
+PUT https://localhost:7033/products/tech/prod-2
 Content-Type: application/json
 
-{
-  "locationCode": "2020"
+{  
+  "locationCode": "3020"
 }
 
 

@@ -5,22 +5,25 @@ To provide a Products API to use for automation.
 
 ## Features
 
-### Add product
+### Register product
 - [ ] Validate request.
 - [ ] Handling failures.
 - [ ] Publishing domain event to Azure storage queue.
 - [ ] Save data in Azure table storage.
 
-### Update product
+### Change location of a product
 - [ ] Validate request.
 - [ ] Handling failures.
 - [ ] Publishing domain event to Azure storage queue.
 - [ ] Save data in Azure table storage.
 
-### Get product
+### Get product by id
 - [ ] Validate request.
 - [ ] Handling failures.
 - [ ] Publishing domain event to Azure storage queue.
+
+### Get all products
+- Returns all the products.
 
 ### Authentication and Authorization
 - [ ] Integrating with Azure AD for authentication and authorization.
