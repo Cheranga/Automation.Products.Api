@@ -112,4 +112,59 @@ internal static class AzureQueueStorageWrapper
                     )
                 )
         );
+
+    public static Aff<QueueOperation> Peek<T>(
+        QueueClient client,
+        Func<string, T> jsonToModel,
+        CancellationToken token
+    ) =>
+        (
+            from op in AffMaybe<Response<PeekedMessage>>(
+                async () => await client.PeekMessageAsync(token)
+            )
+            from _1 in guardnot(
+                op.GetRawResponse().IsError,
+                Error.New(ErrorCodes.PeekError, op.GetRawResponse().ReasonPhrase)
+            )
+            from message in EffMaybe<T>(() => jsonToModel(op.Value.MessageText))
+            select message
+        ).Match(
+            QueueOperation.Success,
+            err =>
+                QueueOperation.Failure(
+                    QueueOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
+
+    public static Aff<QueueOperation> Read<T>(
+        QueueClient client,
+        Func<string, T> jsonToModel,
+        int visibilityInSeconds,
+        CancellationToken token
+    ) =>
+        (
+            from op in AffMaybe<Response<QueueMessage>>(
+                async () =>
+                    await client.ReceiveMessageAsync(
+                        TimeSpan.FromSeconds(visibilityInSeconds),
+                        token
+                    )
+            )
+            from _1 in guardnot(
+                op.GetRawResponse().IsError,
+                Error.New(ErrorCodes.ReadError, op.GetRawResponse().ReasonPhrase)
+            )
+            from message in EffMaybe<T>(() => jsonToModel(op.Value.MessageText))
+            from _ in AffMaybe<Response>(
+                async () =>
+                    await client.DeleteMessageAsync(op.Value.MessageId, op.Value.PopReceipt, token)
+            )
+            select message
+        ).Match(
+            x => QueueOperation.Success(x),
+            err =>
+                QueueOperation.Failure(
+                    QueueOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
 }
