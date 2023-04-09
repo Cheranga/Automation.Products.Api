@@ -60,7 +60,8 @@ public static class Service
             getProductOperation as TableOperation.SuccessOperation<ProductDataModel>
         )!.Data;
 
-        await UpdateLocation(product, request, registerSettings, tableService, token);
+        var updatedProduct = ProductDataModel.New(product.Category, product.ProductId, product.Name, request.LocationCode);
+        await UpdateLocation(updatedProduct, registerSettings, tableService, token);
 
         await PublishLocationChangedEvent(
             product.LocationCode,
@@ -75,7 +76,6 @@ public static class Service
 
     private static async Task UpdateLocation(
         ProductDataModel product,
-        ChangeLocationRequest request,
         RegisterProductSettings registerSettings,
         ITableService tableService,
         CancellationToken token
@@ -84,7 +84,7 @@ public static class Service
         await tableService.UpsertAsync(
             registerSettings.Category,
             registerSettings.Table,
-            request.ToDataModel(product.Name, request.LocationCode),
+            product,
             true,
             token
         );

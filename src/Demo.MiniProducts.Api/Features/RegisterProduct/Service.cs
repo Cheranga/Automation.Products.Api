@@ -49,7 +49,7 @@ public static class Service
             (settings.Queue, () => JsonSerializer.Serialize(@event))
         );
 
-        return Created($"/{Route}/{request.ProductId}");
+        return Created($"/{Route}/{request.Category}/{request.ProductId}");
     }
 
     private static ProductDataModel ToDataModel(this RegisterProductRequest request) =>
