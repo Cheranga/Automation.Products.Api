@@ -18,8 +18,7 @@ internal class QueueService : IQueueService
     ) =>
         (
             await (
-                from sc in GetServiceClient(_factory, category)
-                from qc in GetQueueClient(sc, messageInfo.queue)
+                from qc in QueueClient(_factory, category, messageInfo.queue)
                 from op in Publish(qc, messageInfo.content, token)
                 select op
             ).Run()
@@ -38,8 +37,7 @@ internal class QueueService : IQueueService
     ) =>
         (
             await (
-                from sc in GetServiceClient(_factory, category)
-                from qc in GetQueueClient(sc, messageInfo.queue)
+                from qc in QueueClient(_factory, category, messageInfo.queue)
                 from op in Publish(
                     qc,
                     messageInfo.content,
@@ -60,14 +58,11 @@ internal class QueueService : IQueueService
     public async Task<QueueOperation> PublishBatchAsync(
         string category,
         CancellationToken token,
-        (string queue, IEnumerable<
-            Func<string>
-        > contentFuncs) messageInfo
+        (string queue, IEnumerable<Func<string>> contentFuncs) messageInfo
     ) =>
         (
             await (
-                from sc in GetServiceClient(_factory, category)
-                from qc in GetQueueClient(sc, messageInfo.queue)
+                from qc in QueueClient(_factory, category, messageInfo.queue)
                 from op in PublishBatch(qc, token, messageInfo.contentFuncs)
                 select op
             ).Run()
@@ -86,8 +81,7 @@ internal class QueueService : IQueueService
     ) =>
         (
             await (
-                from sc in GetServiceClient(_factory, category)
-                from qc in GetQueueClient(sc, messageInfo.queue)
+                from qc in QueueClient(_factory, category, messageInfo.queue)
                 from op in Peek<T>(qc, messageInfo.jsonToModel, token)
                 select op
             ).Run()
@@ -106,8 +100,7 @@ internal class QueueService : IQueueService
     ) =>
         (
             await (
-                from sc in GetServiceClient(_factory, category)
-                from qc in GetQueueClient(sc, messageInfo.queue)
+                from qc in QueueClient(_factory, category, messageInfo.queue)
                 from op in Read<T>(
                     qc,
                     messageInfo.jsonToModel,
@@ -123,4 +116,33 @@ internal class QueueService : IQueueService
                     QueueOperationError.New(err.Code, err.Message, err.ToException())
                 )
         );
+
+    public async Task<QueueOperation> ReadBatchAsync<T>(
+        string category,
+        CancellationToken token,
+        int numberOfMessagesToRead,
+        (string queue, Func<string, T> jsonToModel, int visibilityInSeconds) messageInfo
+    ) =>
+        (
+            await (
+                from qc in QueueClient(_factory, category, messageInfo.queue)
+                from op in ReadBatch(qc, numberOfMessagesToRead, messageInfo.jsonToModel, token)
+                select op
+            ).Run()
+        ).Match(
+            messages => QueueOperation.Success(messages),
+            err =>
+                QueueOperation.Failure(
+                    QueueOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
+
+    private static Aff<QueueClient> QueueClient(
+        IAzureClientFactory<QueueServiceClient> factory,
+        string category,
+        string queue
+    ) =>
+        from sc in GetServiceClient(factory, category)
+        from qc in GetQueueClient(sc, queue)
+        select qc;
 }

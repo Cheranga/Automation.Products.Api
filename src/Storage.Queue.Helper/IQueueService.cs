@@ -17,9 +17,7 @@ public interface IQueueService
     Task<QueueOperation> PublishBatchAsync(
         string category,
         CancellationToken token,
-        (string queue, IEnumerable<
-            Func<string>
-        > contentFuncs) messageInfo
+        (string queue, IEnumerable<Func<string>> contentFuncs) messageInfo
     );
 
     Task<QueueOperation> PeekAsync<T>(
@@ -27,10 +25,17 @@ public interface IQueueService
         CancellationToken token,
         (string queue, Func<string, T> jsonToModel) messageInfo
     );
-    
+
     Task<QueueOperation> ReadAsync<T>(
         string category,
         CancellationToken token,
+        (string queue, Func<string, T> jsonToModel, int visibilityInSeconds) messageInfo
+    );
+
+    Task<QueueOperation> ReadBatchAsync<T>(
+        string category,
+        CancellationToken token,
+        int numberOfMessagesToRead,
         (string queue, Func<string, T> jsonToModel, int visibilityInSeconds) messageInfo
     );
 }

@@ -4,7 +4,6 @@ using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using LanguageExt;
 using LanguageExt.Common;
-using LanguageExt.Pipes;
 using Microsoft.Extensions.Azure;
 using static LanguageExt.Prelude;
 
@@ -221,4 +220,38 @@ internal static class AzureQueueStorageWrapper
                     QueueOperationError.New(err.Code, err.Message, err.ToException())
                 )
         );
+
+    public static Aff<List<T>> ReadBatch<T>(
+        QueueClient client,
+        int numberOfMessagesToRead,
+        Func<string, T> jsonToModel,
+        CancellationToken token,
+        int visibilityInSeconds = int.MaxValue
+    ) =>
+        from op in AffMaybe<Response<QueueMessage[]>>(
+            async () =>
+                visibilityInSeconds == int.MaxValue
+                    ? await client.ReceiveMessagesAsync(
+                        maxMessages: numberOfMessagesToRead,
+                        cancellationToken: token
+                    )
+                    : await client.ReceiveMessagesAsync(
+                        maxMessages: numberOfMessagesToRead,
+                        visibilityTimeout: TimeSpan.FromSeconds(visibilityInSeconds),
+                        cancellationToken: token
+                    )
+        )
+        from _1 in guardnot(
+            op.GetRawResponse().IsError,
+            Error.New(ErrorCodes.ReadError, op.GetRawResponse().ReasonPhrase)
+        )
+        from messages in Eff(() => op.Value.Select(x => jsonToModel(x.MessageText)))
+        from _2 in AffMaybe<Seq<Response>>(
+            async () =>
+                await Seq(op.Value)
+                    .SequenceParallel(
+                        x => client.DeleteMessageAsync(x.MessageId, x.PopReceipt, token)
+                    )
+        )
+        select messages.ToList();
 }

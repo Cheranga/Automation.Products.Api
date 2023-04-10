@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
+using LanguageExt.UnitsOfMeasure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Storage.Queue.Helper;
@@ -22,6 +23,27 @@ var host = Host.CreateDefaultBuilder()
 // await PeekMessage(host);
 // await ReadMessage(host);
 await PublishMessageBatch(host);
+await ReadMessageBatch(host);
+
+static async Task ReadMessageBatch(IHost host)
+{
+    var qs = host.Services.GetRequiredService<IQueueService>();
+    var op = await qs.ReadBatchAsync(
+        "test",
+        new CancellationToken(),
+        20,
+        ("registrations", x => JsonSerializer.Deserialize<ProductRegisteredEvent>(x), 30)
+    );
+    Console.WriteLine(
+        op switch
+        {
+            QueueOperation.SuccessOperation<List<ProductRegisteredEvent>> so
+                => $"successfully read {so.Data.Count} messages",
+            QueueOperation.FailedOperation _ => "failed reading batch messages",
+            _ => "unsupported"
+        }
+    );
+}
 
 static async Task PublishMessageBatch(IHost host)
 {
@@ -30,12 +52,6 @@ static async Task PublishMessageBatch(IHost host)
         .Range(1, 1000)
         .Select(x =>
         {
-            // var func = () =>
-            //     x % 2 == 0
-            //         ? JsonSerializer.Serialize(
-            //             new ProductRegisteredEvent(x.ToString(), "Tech", DateTime.UtcNow)
-            //         )
-            //         : throw new Exception("odd number!");
             var func = () =>
                 JsonSerializer.Serialize(
                     new ProductRegisteredEvent(x.ToString(), "Tech", DateTime.UtcNow)
