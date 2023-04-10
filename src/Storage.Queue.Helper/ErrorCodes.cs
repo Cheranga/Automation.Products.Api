@@ -12,6 +12,7 @@ public static class ErrorCodes
     public const int InvalidMessagePublishSettings = 504;
     public const int PeekError = 505;
     public const int ReadError = 506;
+    public const int EmptyQueue = 507;
 }
 
 [ExcludeFromCodeCoverage]
@@ -24,4 +25,5 @@ public static class ErrorMessages
     public const string PublishMessageError = "error occurred when publishing message to the queue";
 
     public const string InvalidMessagePublishSettings = "invalid settings to publish message";
+    public const string EmptyQueue = "queue is empty";
 }

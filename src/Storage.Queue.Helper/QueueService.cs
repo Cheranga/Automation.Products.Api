@@ -57,6 +57,28 @@ internal class QueueService : IQueueService
                 )
         );
 
+    public async Task<QueueOperation> PublishBatchAsync(
+        string category,
+        CancellationToken token,
+        (string queue, IEnumerable<
+            Func<string>
+        > contentFuncs) messageInfo
+    ) =>
+        (
+            await (
+                from sc in GetServiceClient(_factory, category)
+                from qc in GetQueueClient(sc, messageInfo.queue)
+                from op in PublishBatch(qc, token, messageInfo.contentFuncs)
+                select op
+            ).Run()
+        ).Match(
+            op => op,
+            err =>
+                QueueOperation.Failure(
+                    QueueOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
+
     public async Task<QueueOperation> PeekAsync<T>(
         string category,
         CancellationToken token,
@@ -76,24 +98,29 @@ internal class QueueService : IQueueService
                     QueueOperationError.New(err.Code, err.Message, err.ToException())
                 )
         );
-    
+
     public async Task<QueueOperation> ReadAsync<T>(
         string category,
         CancellationToken token,
         (string queue, Func<string, T> jsonToModel, int visibilityInSeconds) messageInfo
     ) =>
-    (
-        await (
-            from sc in GetServiceClient(_factory, category)
-            from qc in GetQueueClient(sc, messageInfo.queue)
-            from op in Read<T>(qc, messageInfo.jsonToModel,messageInfo.visibilityInSeconds, token)
-            select op
-        ).Run()
-    ).Match(
-        x => x,
-        err =>
-            QueueOperation.Failure(
-                QueueOperationError.New(err.Code, err.Message, err.ToException())
-            )
-    );
+        (
+            await (
+                from sc in GetServiceClient(_factory, category)
+                from qc in GetQueueClient(sc, messageInfo.queue)
+                from op in Read<T>(
+                    qc,
+                    messageInfo.jsonToModel,
+                    messageInfo.visibilityInSeconds,
+                    token
+                )
+                select op
+            ).Run()
+        ).Match(
+            x => x,
+            err =>
+                QueueOperation.Failure(
+                    QueueOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
 }

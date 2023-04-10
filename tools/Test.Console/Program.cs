@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,53 +12,91 @@ using Tables = Storage.Table.Helper.Bootstrapper;
 var host = Host.CreateDefaultBuilder()
     .ConfigureServices(services =>
     {
-        Queues.RegisterMessagingWithConnectionString(
-            services,
-            "test",
-            "UseDevelopmentStorage=true"
-        );
-        Tables.RegisterTablesWithConnectionString(
-            services,
-            "students",
-            "UseDevelopmentStorage=true"
-        );
+        services.RegisterMessagingWithConnectionString("test", "UseDevelopmentStorage=true");
+        services.RegisterTablesWithConnectionString("students", "UseDevelopmentStorage=true");
     })
     .Build();
 
-//await DoTables(host);
+// await DoTables(host);
+// await DoQueues(host);
+// await PeekMessage(host);
+// await ReadMessage(host);
+await PublishMessageBatch(host);
 
-var qs = host.Services.GetRequiredService<IQueueService>();
-var peeked = await qs.PeekAsync(
-    "test",
-    new CancellationToken(),
-    ("registrations", x => JsonSerializer.Deserialize<ProductRegisteredEvent>(x))
-);
+static async Task PublishMessageBatch(IHost host)
+{
+    var qs = host.Services.GetRequiredService<IQueueService>();
+    var events = Enumerable
+        .Range(1, 1000)
+        .Select(x =>
+        {
+            // var func = () =>
+            //     x % 2 == 0
+            //         ? JsonSerializer.Serialize(
+            //             new ProductRegisteredEvent(x.ToString(), "Tech", DateTime.UtcNow)
+            //         )
+            //         : throw new Exception("odd number!");
+            var func = () =>
+                JsonSerializer.Serialize(
+                    new ProductRegisteredEvent(x.ToString(), "Tech", DateTime.UtcNow)
+                );
+            return func;
+        });
+    var publishOp = await qs.PublishBatchAsync(
+        "test",
+        new CancellationToken(),
+        ("registrations", events)
+    );
 
-Console.WriteLine(
-    peeked switch
-    {
-        QueueOperation.SuccessOperation<ProductRegisteredEvent> x
-            => $"Peeked message = {x.Data.Category} :: {x.Data.ProductId} :: {x.Data.RegisteredDateTime:O}",
-        QueueOperation.FailedOperation _ => "failed",
-        _ => "unsupported"
-    }
-);
+    Console.WriteLine(
+        publishOp switch
+        {
+            QueueOperation.SuccessOperation _ => "successfully published as a batch",
+            QueueOperation.FailedOperation _ => "failed batch",
+            _ => "unsupported"
+        }
+    );
+}
 
-var @event = await qs.ReadAsync(
-    "test",
-    new CancellationToken(),
-    ("registrations", x => JsonSerializer.Deserialize<ProductRegisteredEvent>(x), 30)
-);
+static async Task PeekMessage(IHost host)
+{
+    var qs = host.Services.GetRequiredService<IQueueService>();
+    var peeked = await qs.PeekAsync(
+        "test",
+        new CancellationToken(),
+        ("registrations", x => JsonSerializer.Deserialize<ProductRegisteredEvent>(x))
+    );
 
-Console.WriteLine(
-    @event switch
-    {
-        QueueOperation.SuccessOperation<ProductRegisteredEvent> x
-            => $"{x.Data.Category} :: {x.Data.ProductId} :: {x.Data.RegisteredDateTime:O}",
-        QueueOperation.FailedOperation _ => "failed",
-        _ => "unsupported"
-    }
-);
+    Console.WriteLine(
+        peeked switch
+        {
+            QueueOperation.SuccessOperation<ProductRegisteredEvent> x
+                => $"Peeked message = {x.Data.Category} :: {x.Data.ProductId} :: {x.Data.RegisteredDateTime:O}",
+            QueueOperation.FailedOperation _ => "failed",
+            _ => "unsupported"
+        }
+    );
+}
+
+static async Task ReadMessage(IHost host)
+{
+    var qs = host.Services.GetRequiredService<IQueueService>();
+    var @event = await qs.ReadAsync(
+        "test",
+        new CancellationToken(),
+        ("registrations", x => JsonSerializer.Deserialize<ProductRegisteredEvent>(x), 30)
+    );
+
+    Console.WriteLine(
+        @event switch
+        {
+            QueueOperation.SuccessOperation<ProductRegisteredEvent> x
+                => $"{x.Data.Category} :: {x.Data.ProductId} :: {x.Data.RegisteredDateTime:O}",
+            QueueOperation.FailedOperation _ => "failed",
+            _ => "unsupported"
+        }
+    );
+}
 
 static async Task DoQueues(IHost host)
 {
@@ -85,9 +124,9 @@ static async Task DoTables(IHost host)
 {
     var tableService = host.Services.GetRequiredService<ITableService>();
     await tableService.UpsertAsync(
-        "students",
-        "techstudents",
-        StudentEntity.New("IT", "1", "Cheranga"),
+        "test",
+        "registrations",
+        ProductDataModel.New("tech", "prod1", "laptop", "2010"),
         true,
         new CancellationToken()
     );

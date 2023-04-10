@@ -4,6 +4,7 @@ using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using LanguageExt;
 using LanguageExt.Common;
+using LanguageExt.Pipes;
 using Microsoft.Extensions.Azure;
 using static LanguageExt.Prelude;
 
@@ -113,6 +114,51 @@ internal static class AzureQueueStorageWrapper
                 )
         );
 
+    public static Aff<QueueOperation> PublishBatch(
+        QueueClient queueClient,
+        CancellationToken token,
+        IEnumerable<Func<string>> messageContents
+    ) =>
+        (
+            from ops in AffMaybe<Seq<Response<SendReceipt>>>(
+                    async () =>
+                        await Seq(messageContents)
+                            .SequenceParallel(x => queueClient.SendMessageAsync(x(), token))
+                )
+                .MapFail(
+                    err =>
+                        QueueOperationError.New(
+                            ErrorCodes.PublishMessageError,
+                            ErrorMessages.PublishMessageError,
+                            err.ToException()
+                        )
+                )
+            select ops
+        ).Match(
+            _ => QueueOperation.Success(),
+            err =>
+                QueueOperation.Failure(
+                    QueueOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
+
+    // Seq(messageContents).SequenceParallel(func => Publish(queueClient, func, token))
+    //     .MapFail(
+    //         err =>
+    //             QueueOperationError.New(
+    //                 ErrorCodes.PublishMessageError,
+    //                 ErrorMessages.PublishMessageError,
+    //                 err.ToException()
+    //             )
+    //     )
+    //     .Match(
+    //         _ => QueueOperation.Success(),
+    //         err =>
+    //             QueueOperation.Failure(
+    //                 QueueOperationError.New(err.Code, err.Message, err.ToException())
+    //             )
+    //     );
+
     public static Aff<QueueOperation> Peek<T>(
         QueueClient client,
         Func<string, T> jsonToModel,
@@ -125,6 +171,10 @@ internal static class AzureQueueStorageWrapper
             from _1 in guardnot(
                 op.GetRawResponse().IsError,
                 Error.New(ErrorCodes.PeekError, op.GetRawResponse().ReasonPhrase)
+            )
+            from _2 in guardnot(
+                op.Value is null,
+                Error.New(ErrorCodes.EmptyQueue, ErrorMessages.EmptyQueue)
             )
             from message in EffMaybe<T>(() => jsonToModel(op.Value.MessageText))
             select message
@@ -154,6 +204,10 @@ internal static class AzureQueueStorageWrapper
                 op.GetRawResponse().IsError,
                 Error.New(ErrorCodes.ReadError, op.GetRawResponse().ReasonPhrase)
             )
+            from _2 in guardnot(
+                op.Value is null,
+                Error.New(ErrorCodes.EmptyQueue, ErrorMessages.EmptyQueue)
+            )
             from message in EffMaybe<T>(() => jsonToModel(op.Value.MessageText))
             from _ in AffMaybe<Response>(
                 async () =>
@@ -161,7 +215,7 @@ internal static class AzureQueueStorageWrapper
             )
             select message
         ).Match(
-            x => QueueOperation.Success(x),
+            QueueOperation.Success,
             err =>
                 QueueOperation.Failure(
                     QueueOperationError.New(err.Code, err.Message, err.ToException())

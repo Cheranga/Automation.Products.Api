@@ -14,6 +14,14 @@ public interface IQueueService
         (string queue, Func<string> content, int visibilitySeconds, int timeToLiveSeconds) messageInfo
     );
 
+    Task<QueueOperation> PublishBatchAsync(
+        string category,
+        CancellationToken token,
+        (string queue, IEnumerable<
+            Func<string>
+        > contentFuncs) messageInfo
+    );
+
     Task<QueueOperation> PeekAsync<T>(
         string category,
         CancellationToken token,
