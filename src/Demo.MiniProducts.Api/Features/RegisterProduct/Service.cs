@@ -39,7 +39,7 @@ public static class Service
             settings.Category,
             settings.Table,
             request.ToDataModel(),
-            false,
+            true,
             token
         );
 

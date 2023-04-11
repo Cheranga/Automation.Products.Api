@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Azure.Data.Tables;
 using LanguageExt;
 using LanguageExt.Common;
@@ -6,25 +7,6 @@ using static LanguageExt.Prelude;
 using static Storage.Table.Helper.AzureTableStorageWrapper;
 
 namespace Storage.Table.Helper;
-
-public interface ITableService
-{
-    Task<TableOperation> UpsertAsync<T>(
-        string category,
-        string table,
-        T data,
-        bool merge,
-        CancellationToken token
-    ) where T : ITableEntity;
-
-    Task<TableOperation> GetAsync<T>(
-        string category,
-        string table,
-        string partitionKey,
-        string rowKey,
-        CancellationToken token
-    ) where T : class, ITableEntity;
-}
 
 internal class TableService : ITableService
 {
@@ -36,16 +18,15 @@ internal class TableService : ITableService
         string category,
         string table,
         T data,
-        bool merge,
+        bool createNew,
         CancellationToken token
     ) where T : ITableEntity =>
         (
             await (
                 from _1 in ValidateEmptyString(category)
                 from _2 in ValidateEmptyString(table)
-                from sc in GetServiceClient(_factory, category)
-                from tc in GetTableClient(sc, table)
-                from op in Upsert(tc, data, token, merge)
+                from tc in TableClient(_factory, category, table)
+                from op in Upsert(tc, data, token, createNew)
                 select op
             ).Run()
         ).Match(
@@ -56,7 +37,7 @@ internal class TableService : ITableService
                 )
         );
 
-    public async Task<TableOperation> GetAsync<T>(
+    public async Task<TableOperation> GetEntityAsync<T>(
         string category,
         string table,
         string partitionKey,
@@ -69,13 +50,32 @@ internal class TableService : ITableService
                 from _2 in ValidateEmptyString(table)
                 from _3 in ValidateEmptyString(partitionKey)
                 from _4 in ValidateEmptyString(rowKey)
-                from sc in GetServiceClient(_factory, category)
-                from tc in GetTableClient(sc, table)
-                from op in GetEntityAsync<T>(tc, partitionKey.ToUpper(), rowKey.ToUpper(), token)
+                from tc in TableClient(_factory, category, table)
+                from op in GetAsync<T>(tc, partitionKey, rowKey, token)
                 select op
             ).Run()
         ).Match(
             operation => operation,
+            err =>
+                TableOperation.Failure(
+                    TableOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
+
+    public async Task<TableOperation> GetEntityListAsync<T>(
+        string category,
+        string table,
+        Expression<Func<T, bool>> filter,
+        CancellationToken token
+    ) where T : class, ITableEntity =>
+        (
+            await (
+                from tc in TableClient(_factory, category, table)
+                from records in Aff(async () => await tc.QueryAsync<T>(filter).ToListAsync(token))
+                select records
+            ).Run()
+        ).Match(
+            TableOperation.GetEntities,
             err =>
                 TableOperation.Failure(
                     TableOperationError.New(err.Code, err.Message, err.ToException())
@@ -90,28 +90,12 @@ internal class TableService : ITableService
             .ToEff()
         select unit;
 
-    private static Eff<Unit> ValidateEmptyString(
+    private static Eff<TableClient> TableClient(
+        IAzureClientFactory<TableServiceClient> factory,
         string category,
-        string table,
-        string partitionKey,
-        string rowKey
+        string table
     ) =>
-        from _1 in guardnot(
-                string.IsNullOrWhiteSpace(category),
-                Error.New("category cannot be null or empty")
-            )
-            .ToEff()
-        from _2 in guardnot(
-            string.IsNullOrWhiteSpace(table),
-            Error.New("table cannot be null or empty")
-        )
-        from _3 in guardnot(
-            string.IsNullOrWhiteSpace(partitionKey),
-            Error.New("partition key cannot be null or empty")
-        )
-        from _4 in guardnot(
-            string.IsNullOrWhiteSpace(rowKey),
-            Error.New("row key cannot be null or empty")
-        )
-        select unit;
+        from sc in GetServiceClient(factory, category)
+        from tc in GetTableClient(sc, table)
+        select tc;
 }

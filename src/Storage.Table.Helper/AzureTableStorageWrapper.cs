@@ -40,14 +40,14 @@ internal static class AzureTableStorageWrapper
         TableClient client,
         T data,
         CancellationToken token,
-        bool merge = true
+        bool createNew = true
     ) where T : ITableEntity =>
         (
             from op in AffMaybe<Response>(
                 async () =>
                     await client.UpsertEntityAsync(
                         data,
-                        merge ? TableUpdateMode.Merge : TableUpdateMode.Replace,
+                        createNew ? TableUpdateMode.Replace : TableUpdateMode.Merge,
                         token
                     )
             )
@@ -64,7 +64,7 @@ internal static class AzureTableStorageWrapper
                 )
         );
 
-    public static Aff<TableOperation> GetEntityAsync<T>(
+    public static Aff<TableOperation> GetAsync<T>(
         TableClient client,
         string partitionKey,
         string rowKey,
@@ -81,7 +81,7 @@ internal static class AzureTableStorageWrapper
             )
             select op
         ).Match(
-            response => TableOperation.Success(response.Value),
+            response => TableOperation.GetEntity(response.Value),
             err =>
                 TableOperation.Failure(
                     TableOperationError.New(err.Code, err.Message, err.ToException())

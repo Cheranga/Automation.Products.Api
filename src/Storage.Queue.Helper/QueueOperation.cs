@@ -5,16 +5,13 @@ namespace Storage.Queue.Helper;
 [ExcludeFromCodeCoverage]
 public abstract class QueueOperation
 {
-    private QueueOperation()
-    {
-    }
+    private QueueOperation() { }
 
     public static QueueOperation Success() => new SuccessOperation();
 
     public static QueueOperation Success<T>(T data) => new SuccessOperation<T>(data);
 
-    public static QueueOperation Failure(QueueOperationError error) =>
-        FailedOperation.New(error);
+    public static QueueOperation Failure(QueueOperationError error) => FailedOperation.New(error);
 
     public sealed class SuccessOperation<T> : QueueOperation
     {
@@ -25,9 +22,8 @@ public abstract class QueueOperation
             Data = data;
         }
     }
-    public sealed class SuccessOperation : QueueOperation
-    {
-    }
+
+    public sealed class SuccessOperation : QueueOperation { }
 
     public sealed class FailedOperation : QueueOperation
     {
@@ -35,7 +31,6 @@ public abstract class QueueOperation
 
         public QueueOperationError Error { get; }
 
-        public static FailedOperation New(QueueOperationError error) =>
-            new(error);
+        public static FailedOperation New(QueueOperationError error) => new(error);
     }
 }

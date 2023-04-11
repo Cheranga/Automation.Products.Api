@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using Azure;
 using Azure.Data.Tables;
 
 namespace Demo.MiniProducts.Api.DataAccess;
 
+[DebuggerDisplay("{Category} - {ProductId} - {Name} - {LocationCode}")]
 public class ProductDataModel : ITableEntity
 {
     public string Category { get; set; } = string.Empty;

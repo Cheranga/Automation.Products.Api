@@ -22,11 +22,11 @@ public static class Service
         [FromServices] ITableService tableService
     )
     {
-        var op = await tableService.GetAsync<ProductDataModel>(
+        var op = await tableService.GetEntityAsync<ProductDataModel>(
             settings.Category,
             settings.Table,
-            category,
-            id,
+            category.ToUpper(),
+            id.ToUpper(),
             new CancellationToken()
         );
         if (op is TableOperation.FailedOperation)
@@ -34,16 +34,35 @@ public static class Service
             return ResponseExtensions.ProductUnfound(id);
         }
 
-        var product = (op as TableOperation.SuccessOperation<ProductDataModel>)!.Data;
-        return Ok(
-            new ProductResponse(
-                new ProductDto(
-                    product.ProductId,
-                    product.Name,
-                    product.LocationCode,
-                    product.Category
-                )
-            )
-        );
+        return op switch
+        {
+            TableOperation.QuerySingleOperation<ProductDataModel> q
+                => Ok(
+                    new ProductResponse(
+                        new ProductDto(
+                            q.Entity.ProductId,
+                            q.Entity.Name,
+                            q.Entity.LocationCode,
+                            q.Entity.Category
+                        )
+                    )
+                ),
+            TableOperation.FailedOperation f
+                => Problem(
+                    new ProblemDetails
+                    {
+                        Type = "Error",
+                        Title = "Error",
+                        Detail = "error occurred when getting product",
+                        Status = StatusCodes.Status500InternalServerError,
+                        Extensions =
+                        {
+                            { "ErrorCode", f.Error.Code },
+                            { "ErrorMessage", f.Error.Message }
+                        }
+                    }
+                ),
+            _ => throw new NotSupportedException("")
+        };
     }
 }

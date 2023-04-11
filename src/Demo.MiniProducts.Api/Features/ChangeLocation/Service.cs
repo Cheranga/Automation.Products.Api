@@ -45,11 +45,11 @@ public static class Service
         CancellationToken token
     )
     {
-        var getProductOperation = await tableService.GetAsync<ProductDataModel>(
+        var getProductOperation = await tableService.GetEntityAsync<ProductDataModel>(
             registerSettings.Category,
             registerSettings.Table,
-            request.Category,
-            request.Id,
+            request.Category.ToUpper(),
+            request.Id.ToUpper(),
             token
         );
 
@@ -57,8 +57,8 @@ public static class Service
             return NotFound();
 
         var product = (
-            getProductOperation as TableOperation.SuccessOperation<ProductDataModel>
-        )!.Data;
+            getProductOperation as TableOperation.QuerySingleOperation<ProductDataModel>
+        )!.Entity;
 
         var updatedProduct = ProductDataModel.New(product.Category, product.ProductId, product.Name, request.LocationCode);
         await UpdateLocation(updatedProduct, registerSettings, tableService, token);
@@ -85,7 +85,7 @@ public static class Service
             registerSettings.Category,
             registerSettings.Table,
             product,
-            true,
+            false,
             token
         );
     }

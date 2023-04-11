@@ -14,16 +14,11 @@ var host = Host.CreateDefaultBuilder()
     .ConfigureServices(services =>
     {
         services.RegisterMessagingWithConnectionString("test", "UseDevelopmentStorage=true");
-        services.RegisterTablesWithConnectionString("students", "UseDevelopmentStorage=true");
+        services.RegisterTablesWithConnectionString("test", "UseDevelopmentStorage=true");
     })
     .Build();
 
-// await DoTables(host);
-// await DoQueues(host);
-// await PeekMessage(host);
-// await ReadMessage(host);
-await PublishMessageBatch(host);
-await ReadMessageBatch(host);
+await DoTables(host);
 
 static async Task ReadMessageBatch(IHost host)
 {
@@ -31,7 +26,7 @@ static async Task ReadMessageBatch(IHost host)
     var op = await qs.ReadBatchAsync(
         "test",
         new CancellationToken(),
-        20,
+        100,
         ("registrations", x => JsonSerializer.Deserialize<ProductRegisteredEvent>(x), 30)
     );
     Console.WriteLine(
@@ -139,11 +134,35 @@ static async Task DoQueues(IHost host)
 static async Task DoTables(IHost host)
 {
     var tableService = host.Services.GetRequiredService<ITableService>();
-    await tableService.UpsertAsync(
+    await Task.WhenAll(
+        Enumerable
+            .Range(1, 10)
+            .Select(
+                x =>
+                    tableService.UpsertAsync(
+                        "test",
+                        "registrations",
+                        ProductDataModel.New("tech", $"prod{x}", "laptop", $"{x}"),
+                        true,
+                        new CancellationToken()
+                    )
+            )
+    );
+
+    var operation = await tableService.GetEntityListAsync<ProductDataModel>(
         "test",
         "registrations",
-        ProductDataModel.New("tech", "prod1", "laptop", "2010"),
-        true,
+        x => x.PartitionKey == "TECH" && x.LocationCode == "5",
         new CancellationToken()
+    );
+
+    Console.WriteLine(
+        operation switch
+        {
+            TableOperation.QueryListOperation<ProductDataModel> op
+                => $"successfully retrieved {op.Entities.Count} products",
+            TableOperation.FailedOperation _ => "failed",
+            _ => "unsupported"
+        }
     );
 }
