@@ -81,11 +81,10 @@ public static class Service
         CancellationToken token
     )
     {
-        await tableService.UpsertAsync(
+        await tableService.UpdateAsync(
             registerSettings.Category,
             registerSettings.Table,
             product,
-            false,
             token
         );
     }

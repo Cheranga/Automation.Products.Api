@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
+using LanguageExt;
 using LanguageExt.UnitsOfMeasure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -134,16 +135,24 @@ static async Task DoQueues(IHost host)
 static async Task DoTables(IHost host)
 {
     var tableService = host.Services.GetRequiredService<ITableService>();
+
+    var commandOp = await tableService.InsertAsync(
+        "test",
+        "registrations",
+        ProductDataModel.New("tech", $"prod1", "laptop", $"1111"),
+        new CancellationToken()
+    );
+    
+    
     await Task.WhenAll(
         Enumerable
             .Range(1, 10)
             .Select(
                 x =>
-                    tableService.UpsertAsync(
+                    tableService.InsertAsync(
                         "test",
-                        "registrations",
+                        "registrationsa",
                         ProductDataModel.New("tech", $"prod{x}", "laptop", $"{x}"),
-                        true,
                         new CancellationToken()
                     )
             )
@@ -152,10 +161,10 @@ static async Task DoTables(IHost host)
     var operation = await tableService.GetEntityListAsync<ProductDataModel>(
         "test",
         "registrations",
-        x => x.PartitionKey == "TECH" && x.LocationCode == "5",
+        x => x.PartitionKey == "TECH" && x.ProductId == "prod3",
         new CancellationToken()
     );
-
+    
     Console.WriteLine(
         operation switch
         {

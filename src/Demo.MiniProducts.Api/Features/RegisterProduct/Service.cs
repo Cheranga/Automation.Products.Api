@@ -35,11 +35,10 @@ public static class Service
         var token = new CancellationToken();
         request.ToDataModel();
 
-        var upsertOperation = await tableService.UpsertAsync(
+        var insertOperation = await tableService.InsertAsync(
             settings.Category,
             settings.Table,
             request.ToDataModel(),
-            true,
             token
         );
 

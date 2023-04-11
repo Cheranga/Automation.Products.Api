@@ -12,13 +12,13 @@ public class TableOperationException : Exception
 [ExcludeFromCodeCoverage]
 public record TableOperationError : Error
 {
-    private readonly TableOperationException _exception;
+    public TableOperationException Exception { get; }
 
     private TableOperationError(Error error)
     {
         Code = error.Code;
         Message = error.Message;
-        _exception = new TableOperationException(error);
+        Exception = new TableOperationException(error);
     }
 
     public override int Code { get; }
@@ -27,10 +27,10 @@ public record TableOperationError : Error
     public override bool IsExceptional => true;
     public override bool IsExpected => false;
 
-    public override bool Is<E>() => _exception is E;
+    public override bool Is<E>() => Exception is E;
 
     public override ErrorException ToErrorException() =>
-        ErrorException.New(Code, Message, ErrorException.New(_exception));
+        ErrorException.New(Code, Message, ErrorException.New(Exception));
 
     public static TableOperationError New(
         int errorCode,

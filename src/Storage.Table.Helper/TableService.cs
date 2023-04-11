@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Azure;
 using Azure.Data.Tables;
 using LanguageExt;
 using LanguageExt.Common;
@@ -14,26 +15,27 @@ internal class TableService : ITableService
 
     public TableService(IAzureClientFactory<TableServiceClient> factory) => _factory = factory;
 
-    public async Task<TableOperation> UpsertAsync<T>(
+    public async Task<TableOperation> InsertAsync<T>(
         string category,
         string table,
         T data,
-        bool createNew,
         CancellationToken token
-    ) where T : ITableEntity =>
+    ) where T : class, ITableEntity =>
         (
             await (
-                from _1 in ValidateEmptyString(category)
-                from _2 in ValidateEmptyString(table)
                 from tc in TableClient(_factory, category, table)
-                from op in Upsert(tc, data, token, createNew)
+                from op in AffMaybe<Response>(async () => await tc.AddEntityAsync(data, token))
                 select op
             ).Run()
         ).Match(
-            op => op,
+            _ => TableOperation.Success(),
             err =>
                 TableOperation.Failure(
-                    TableOperationError.New(err.Code, err.Message, err.ToException())
+                    TableOperationError.New(
+                        ErrorCodes.CannotInsert,
+                        ErrorMessages.CannotInsert,
+                        err.ToException()
+                    )
                 )
         );
 
@@ -76,6 +78,38 @@ internal class TableService : ITableService
             ).Run()
         ).Match(
             TableOperation.GetEntities,
+            err =>
+                TableOperation.Failure(
+                    TableOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
+
+    public async Task<TableOperation> UpdateAsync<T>(
+        string category,
+        string table,
+        T data,
+        CancellationToken token,
+        bool overwrite = false
+    ) where T : class, ITableEntity =>
+        (
+            await (
+                from tc in TableClient(_factory, category, table)
+                from op in AffMaybe<Response>(
+                    async () =>
+                        await tc.UpsertEntityAsync(
+                            data,
+                            overwrite ? TableUpdateMode.Replace : TableUpdateMode.Merge,
+                            token
+                        )
+                )
+                from a in guardnot(
+                    op.IsError,
+                    Error.New(ErrorCodes.CannotUpdate, ErrorMessages.CannotUpdate)
+                )
+                select op
+            ).Run()
+        ).Match(
+            _ => TableOperation.Success(),
             err =>
                 TableOperation.Failure(
                     TableOperationError.New(err.Code, err.Message, err.ToException())
