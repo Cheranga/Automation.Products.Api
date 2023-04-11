@@ -136,10 +136,10 @@ static async Task DoTables(IHost host)
 {
     var tableService = host.Services.GetRequiredService<ITableService>();
 
-    var commandOp = await tableService.InsertAsync(
+    var commandOp = await tableService.UpsertAsync(
         "test",
         "registrations",
-        ProductDataModel.New("tech", $"prod1", "laptop", $"1111"),
+        ProductDataModel.New("tech", "prod1111", "laptop", "1111"),
         new CancellationToken()
     );
     
@@ -149,9 +149,9 @@ static async Task DoTables(IHost host)
             .Range(1, 10)
             .Select(
                 x =>
-                    tableService.InsertAsync(
+                    tableService.UpsertAsync(
                         "test",
-                        "registrationsa",
+                        "registrations",
                         ProductDataModel.New("tech", $"prod{x}", "laptop", $"{x}"),
                         new CancellationToken()
                     )

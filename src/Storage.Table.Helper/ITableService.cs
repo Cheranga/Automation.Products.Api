@@ -5,19 +5,18 @@ namespace Storage.Table.Helper;
 
 public interface ITableService
 {
-    Task<TableOperation> InsertAsync<T>(
+    Task<TableOperation> UpdateAsync<T>(
         string category,
         string table,
         T data,
         CancellationToken token
     ) where T : class, ITableEntity;
-
-    Task<TableOperation> UpdateAsync<T>(
+    
+    Task<TableOperation> UpsertAsync<T>(
         string category,
         string table,
         T data,
-        CancellationToken token,
-        bool overwrite = false
+        CancellationToken token
     ) where T : class, ITableEntity;
 
     Task<TableOperation> GetEntityAsync<T>(

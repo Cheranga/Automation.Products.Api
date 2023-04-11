@@ -39,6 +39,37 @@ internal class TableService : ITableService
                 )
         );
 
+    public async Task<TableOperation> UpsertAsync<T>(
+        string category,
+        string table,
+        T data,
+        CancellationToken token
+    ) where T : class, ITableEntity =>
+        (
+            await (
+                from tc in TableClient(_factory, category, table)
+                from op in AffMaybe<Response>(
+                    async () =>
+                        await tc.UpsertEntityAsync(
+                            data,
+                            mode: TableUpdateMode.Replace,
+                            cancellationToken: token
+                        )
+                )
+                select op
+            ).Run()
+        ).Match(
+            _ => TableOperation.Success(),
+            err =>
+                TableOperation.Failure(
+                    TableOperationError.New(
+                        ErrorCodes.CannotUpsert,
+                        ErrorMessages.CannotUpsert,
+                        err.ToException()
+                    )
+                )
+        );
+
     public async Task<TableOperation> GetEntityAsync<T>(
         string category,
         string table,
@@ -88,19 +119,13 @@ internal class TableService : ITableService
         string category,
         string table,
         T data,
-        CancellationToken token,
-        bool overwrite = false
+        CancellationToken token
     ) where T : class, ITableEntity =>
         (
             await (
                 from tc in TableClient(_factory, category, table)
                 from op in AffMaybe<Response>(
-                    async () =>
-                        await tc.UpsertEntityAsync(
-                            data,
-                            overwrite ? TableUpdateMode.Replace : TableUpdateMode.Merge,
-                            token
-                        )
+                    async () => await tc.UpsertEntityAsync(data, TableUpdateMode.Merge, token)
                 )
                 from a in guardnot(
                     op.IsError,

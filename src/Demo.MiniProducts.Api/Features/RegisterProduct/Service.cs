@@ -35,7 +35,7 @@ public static class Service
         var token = new CancellationToken();
         request.ToDataModel();
 
-        var insertOperation = await tableService.InsertAsync(
+        var insertOperation = await tableService.UpsertAsync(
             settings.Category,
             settings.Table,
             request.ToDataModel(),
