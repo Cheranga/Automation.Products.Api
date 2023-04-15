@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Azure.Storage.Table.Wrapper.Commands;
+using Azure.Storage.Table.Wrapper.Queries;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Extensions;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
@@ -6,20 +8,22 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Storage.Queue.Helper;
-using Storage.Table.Helper;
 using static Microsoft.AspNetCore.Http.TypedResults;
 
 namespace Demo.MiniProducts.Api.Features.ChangeLocation;
 
 public static class Service
 {
-    public static async Task<Results<ValidationProblem, NotFound, NoContent>> ChangeLocation(
+    public static async Task<
+        Results<ValidationProblem, ProblemHttpResult, NotFound, NoContent>
+    > ChangeLocation(
         ChangeLocationRequest request,
         [FromServices] IValidator<ChangeLocationRequest> validator,
         [FromServices] UpdateProductSettings updateSettings,
         [FromServices] RegisterProductSettings registerSettings,
         [FromServices] IQueueService queueService,
-        [FromServices] ITableService tableService
+        [FromServices] IQueryService queryService,
+        [FromServices] ICommandService commandService
     )
     {
         var validationResult = await validator.ValidateAsync(request);
@@ -31,21 +35,25 @@ public static class Service
             updateSettings,
             registerSettings,
             queueService,
-            tableService,
+            queryService,
+            commandService,
             new CancellationToken()
         );
     }
 
-    private static async Task<Results<ValidationProblem, NotFound, NoContent>> UpdateLocation(
+    private static async Task<
+        Results<ValidationProblem, ProblemHttpResult, NotFound, NoContent>
+    > UpdateLocation(
         ChangeLocationRequest request,
         UpdateProductSettings updatedSettings,
         RegisterProductSettings registerSettings,
         IQueueService queueService,
-        ITableService tableService,
+        IQueryService queryService,
+        ICommandService tableService,
         CancellationToken token
     )
     {
-        var getProductOperation = await tableService.GetEntityAsync<ProductDataModel>(
+        var getProductOperation = await queryService.GetEntityAsync<ProductDataModel>(
             registerSettings.Category,
             registerSettings.Table,
             request.Category.ToUpper(),
@@ -53,14 +61,34 @@ public static class Service
             token
         );
 
-        if (getProductOperation is TableOperation.FailedOperation)
+        if (getProductOperation.Response is QueryResult.QueryFailedResult f)
+        {
+            return Problem(
+                new ProblemDetails
+                {
+                    Type = "Error",
+                    Title = f.ErrorCode.ToString(),
+                    Detail = f.ErrorMessage,
+                    Status = StatusCodes.Status500InternalServerError
+                }
+            );
+        }
+
+        if (getProductOperation.Response is QueryResult.EmptyResult)
+        {
             return NotFound();
+        }
 
         var product = (
-            getProductOperation as TableOperation.QuerySingleOperation<ProductDataModel>
+            getProductOperation.Response as QueryResult.SingleResult<ProductDataModel>
         )!.Entity;
 
-        var updatedProduct = ProductDataModel.New(product.Category, product.ProductId, product.Name, request.LocationCode);
+        var updatedProduct = ProductDataModel.New(
+            product.Category,
+            product.ProductId,
+            product.Name,
+            request.LocationCode
+        );
         await UpdateLocation(updatedProduct, registerSettings, tableService, token);
 
         await PublishLocationChangedEvent(
@@ -77,11 +105,11 @@ public static class Service
     private static async Task UpdateLocation(
         ProductDataModel product,
         RegisterProductSettings registerSettings,
-        ITableService tableService,
+        ICommandService commandService,
         CancellationToken token
     )
     {
-        await tableService.UpdateAsync(
+        await commandService.UpdateAsync(
             registerSettings.Category,
             registerSettings.Table,
             product,

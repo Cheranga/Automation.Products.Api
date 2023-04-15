@@ -1,11 +1,12 @@
+using Azure.Storage.Table.Wrapper.Queries;
 using Demo.MiniProducts.Api.Core;
 using Demo.MiniProducts.Api.DataAccess;
+using Demo.MiniProducts.Api.Extensions;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Storage.Table.Helper;
 using static Microsoft.AspNetCore.Http.TypedResults;
-using ResponseExtensions = Demo.MiniProducts.Api.Extensions.ResponseExtensions;
+using static Demo.MiniProducts.Api.Extensions.ApiOperationExtensions;
 
 namespace Demo.MiniProducts.Api.Features.FindById;
 
@@ -15,54 +16,30 @@ public record ProductResponse(ProductDto Data) : ResponseDtoBase<ProductDto>(Dat
 
 public static class Service
 {
-    public static async Task<Results<ProblemHttpResult, Ok<ProductResponse>>> GetProductDetailsById(
+    public static async Task<
+        Results<ProblemHttpResult, NotFound, Ok<ProductResponse>>
+    > GetProductDetailsById(
         [FromRoute] string category,
         [FromRoute] string id,
         [FromServices] RegisterProductSettings settings,
-        [FromServices] ITableService tableService
+        [FromServices] IQueryService queryService
     )
     {
-        var op = await tableService.GetEntityAsync<ProductDataModel>(
+        var operation = await GetEntity<ProductDataModel>(
             settings.Category,
             settings.Table,
             category.ToUpper(),
             id.ToUpper(),
-            new CancellationToken()
+            queryService
         );
-        if (op is TableOperation.FailedOperation)
-        {
-            return ResponseExtensions.ProductUnfound(id);
-        }
 
-        return op switch
+        return operation.Operation switch
         {
-            TableOperation.QuerySingleOperation<ProductDataModel> q
-                => Ok(
-                    new ProductResponse(
-                        new ProductDto(
-                            q.Entity.ProductId,
-                            q.Entity.Name,
-                            q.Entity.LocationCode,
-                            q.Entity.Category
-                        )
-                    )
-                ),
-            TableOperation.FailedOperation f
-                => Problem(
-                    new ProblemDetails
-                    {
-                        Type = "Error",
-                        Title = "Error",
-                        Detail = "error occurred when getting product",
-                        Status = StatusCodes.Status500InternalServerError,
-                        Extensions =
-                        {
-                            { "ErrorCode", f.Error.Code },
-                            { "ErrorMessage", f.Error.Message }
-                        }
-                    }
-                ),
-            _ => throw new NotSupportedException("")
+            ApiOperation.ApiFailedOperation f => f.ToErrorResponse(),
+            ApiOperation.ApiSuccessfulOperation => NotFound(),
+            ApiOperation.ApiSuccessfulOperation<ProductDataModel> p
+                => Ok(p.Data.ToProductResponse()),
+            _ => throw new NotSupportedException()
         };
     }
 }

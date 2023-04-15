@@ -1,15 +1,11 @@
 ﻿using System.Text.Json;
-using Demo.MiniProducts.Api.DataAccess;
+using Azure.Storage.Table.Wrapper.Core;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
-using LanguageExt;
-using LanguageExt.UnitsOfMeasure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Storage.Queue.Helper;
-using Storage.Table.Helper;
 using Test.Console;
 using Queues = Storage.Queue.Helper.Bootstrapper;
-using Tables = Storage.Table.Helper.Bootstrapper;
 
 var host = Host.CreateDefaultBuilder()
     .ConfigureServices(services =>
@@ -19,7 +15,7 @@ var host = Host.CreateDefaultBuilder()
     })
     .Build();
 
-await DoTables(host);
+await DoQueues(host);
 
 static async Task ReadMessageBatch(IHost host)
 {
@@ -128,50 +124,6 @@ static async Task DoQueues(IHost host)
             QueueOperation.FailedOperation f
                 => $"ErrorCode:{f.Error.Code}, ErrorMessage:{f.Error.Message}, Exception:{f.Error.Exception}",
             _ => "unsupported operation"
-        }
-    );
-}
-
-static async Task DoTables(IHost host)
-{
-    var tableService = host.Services.GetRequiredService<ITableService>();
-
-    var commandOp = await tableService.UpsertAsync(
-        "test",
-        "registrations",
-        ProductDataModel.New("tech", "prod1111", "laptop", "1111"),
-        new CancellationToken()
-    );
-    
-    
-    await Task.WhenAll(
-        Enumerable
-            .Range(1, 10)
-            .Select(
-                x =>
-                    tableService.UpsertAsync(
-                        "test",
-                        "registrations",
-                        ProductDataModel.New("tech", $"prod{x}", "laptop", $"{x}"),
-                        new CancellationToken()
-                    )
-            )
-    );
-
-    var operation = await tableService.GetEntityListAsync<ProductDataModel>(
-        "test",
-        "registrations",
-        x => x.PartitionKey == "TECH" && x.ProductId == "prod3",
-        new CancellationToken()
-    );
-    
-    Console.WriteLine(
-        operation switch
-        {
-            TableOperation.QueryListOperation<ProductDataModel> op
-                => $"successfully retrieved {op.Entities.Count} products",
-            TableOperation.FailedOperation _ => "failed",
-            _ => "unsupported"
         }
     );
 }
