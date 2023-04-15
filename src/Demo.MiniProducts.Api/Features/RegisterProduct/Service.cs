@@ -1,12 +1,13 @@
 using System.Text.Json;
-using Demo.MiniProducts.Api.DataAccess;
+using Azure.Storage.Table.Wrapper.Commands;
+using Demo.MiniProducts.Api.Core;
 using Demo.MiniProducts.Api.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Storage.Queue.Helper;
-using Storage.Table.Helper;
 using static Microsoft.AspNetCore.Http.TypedResults;
+using static Demo.MiniProducts.Api.Extensions.ApiOperationExtensions;
 
 namespace Demo.MiniProducts.Api.Features.RegisterProduct;
 
@@ -14,49 +15,47 @@ public static class Service
 {
     private const string Route = "products";
 
-    public static async Task<Results<ValidationProblem, Created>> RegisterProduct(
+    public static async Task<
+        Results<ValidationProblem, ProblemHttpResult, Created>
+    > RegisterProduct(
         [FromBody] RegisterProductRequest request,
         [FromServices] IValidator<RegisterProductRequest> validator,
         [FromServices] RegisterProductSettings settings,
         [FromServices] IQueueService queueService,
-        [FromServices] ITableService tableService
+        [FromServices] ICommandService commandService,
+        CancellationToken token = new()
     )
     {
-        var validationResult = await validator.ValidateAsync(request);
-        if (!validationResult.IsValid)
-            return validationResult.ToValidationErrorResponse();
+        var validation = await Validate(request, validator, token);
+        if (validation.Operation is ApiOperation.ApiValidationFailureOperation vr)
+        {
+            return vr.ValidationResult.ToValidationErrorResponse();
+        }
 
-        var @event = new ProductRegisteredEvent(
-            request.ProductId,
-            request.Category,
-            DateTime.UtcNow
-        );
-
-        var token = new CancellationToken();
-        request.ToDataModel();
-
-        var upsertOperation = await tableService.UpsertAsync(
+        var upsert = await Upsert(
             settings.Category,
             settings.Table,
             request.ToDataModel(),
-            true,
+            commandService,
             token
         );
+        if (upsert.Operation is ApiOperation.ApiFailedOperation f)
+        {
+            return f.ToErrorResponse();
+        }
 
-        var publishEventOperation = await queueService.PublishAsync(
+        var publishEvent = await PublishEvent(
+            () => JsonSerializer.Serialize(request.ToEvent()),
             settings.Category,
-            token,
-            (settings.Queue, () => JsonSerializer.Serialize(@event))
+            settings.Queue,
+            queueService,
+            token
         );
+        if (publishEvent.Operation is ApiOperation.ApiFailedOperation fp)
+        {
+            return fp.ToErrorResponse();
+        }
 
-        return Created($"/{Route}/{request.ProductId}");
+        return Created($"/{Route}/{request.Category}/{request.ProductId}");
     }
-
-    private static ProductDataModel ToDataModel(this RegisterProductRequest request) =>
-        ProductDataModel.New(
-            request.Category,
-            request.ProductId,
-            request.Name,
-            request.LocationCode
-        );
 }

@@ -10,6 +10,9 @@ public static class ErrorCodes
     public const int PublishMessageError = 502;
     public const int PublishFailResponse = 503;
     public const int InvalidMessagePublishSettings = 504;
+    public const int PeekError = 505;
+    public const int ReadError = 506;
+    public const int EmptyQueue = 507;
 }
 
 [ExcludeFromCodeCoverage]
@@ -21,8 +24,6 @@ public static class ErrorMessages
     public const string QueueUnavailable = "queue does not exist in the storage account.";
     public const string PublishMessageError = "error occurred when publishing message to the queue";
 
-    public const string PublishFailResponse =
-        "publish to queue operation returned unsuccessful response";
-
     public const string InvalidMessagePublishSettings = "invalid settings to publish message";
+    public const string EmptyQueue = "queue is empty";
 }

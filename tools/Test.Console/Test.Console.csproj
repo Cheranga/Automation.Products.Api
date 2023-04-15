@@ -8,8 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\src\Demo.MiniProducts.Api\Demo.MiniProducts.Api.csproj" />
         <ProjectReference Include="..\..\src\Storage.Queue.Helper\Storage.Queue.Helper.csproj" />
-        <ProjectReference Include="..\..\src\Storage.Table.Helper\Storage.Table.Helper.csproj" />
     </ItemGroup>
 
     <ItemGroup>

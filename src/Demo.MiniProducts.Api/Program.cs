@@ -2,6 +2,9 @@ using System.Net.Mime;
 using Demo.MiniProducts.Api;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using Microsoft.OpenApi.Models;
+using RegisterProduct = Demo.MiniProducts.Api.Features.RegisterProduct;
+using ChangeLocation = Demo.MiniProducts.Api.Features.ChangeLocation;
+using FindProduct = Demo.MiniProducts.Api.Features.FindById;
 
 const string Route = "products";
 
@@ -11,10 +14,7 @@ app.UseSwaggerUI();
 var productsApi = app.MapGroup($"/{Route}/").WithOpenApi();
 
 productsApi
-    .MapGet(
-        "/{category}/{id}",
-        Demo.MiniProducts.Api.Features.FindById.Service.GetProductDetailsById
-    )
+    .MapGet("/{category}/{id}", FindProduct.Service.GetProductDetailsById)
     .WithSummary("Get product by product id.")
     .WithOpenApi(operation =>
     {
@@ -27,15 +27,18 @@ productsApi
     });
 
 productsApi
-    .MapPost("/", Service.RegisterProduct)
+    .MapPost("/", RegisterProduct.Service.RegisterProduct)
     .Accepts<RegisterProductRequest>(MediaTypeNames.Application.Json)
-    .WithName(nameof(Service.RegisterProduct))
+    .WithName(nameof(RegisterProduct.Service.RegisterProduct))
     .WithSummary("Registers a product.")
     .WithOpenApi();
 
 productsApi
-    .MapPut("/{category}/{id}", Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation)
-    .WithName(nameof(Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation))
+    .MapPut(
+        "/{category}/{id}",
+        ChangeLocation.Service.ChangeLocation
+    )
+    .WithName(nameof(ChangeLocation.Service.ChangeLocation))
     .WithSummary("Update product by searching for product id.")
     .WithOpenApi();
 

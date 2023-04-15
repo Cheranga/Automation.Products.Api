@@ -112,4 +112,128 @@ internal static class AzureQueueStorageWrapper
                     )
                 )
         );
+
+    public static Aff<QueueOperation> PublishBatch(
+        QueueClient queueClient,
+        CancellationToken token,
+        IEnumerable<Func<string>> messageContents
+    ) =>
+        (
+            from ops in AffMaybe<Seq<Response<SendReceipt>>>(
+                    async () =>
+                        await Seq(messageContents)
+                            .SequenceParallel(x => queueClient.SendMessageAsync(x(), token))
+                )
+                .MapFail(
+                    err =>
+                        QueueOperationError.New(
+                            ErrorCodes.PublishMessageError,
+                            ErrorMessages.PublishMessageError,
+                            err.ToException()
+                        )
+                )
+            select ops
+        ).Match(
+            _ => QueueOperation.Success(),
+            err =>
+                QueueOperation.Failure(
+                    QueueOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
+
+    public static Aff<QueueOperation> Peek<T>(
+        QueueClient client,
+        Func<string, T> jsonToModel,
+        CancellationToken token
+    ) =>
+        (
+            from op in AffMaybe<Response<PeekedMessage>>(
+                async () => await client.PeekMessageAsync(token)
+            )
+            from _1 in guardnot(
+                op.GetRawResponse().IsError,
+                Error.New(ErrorCodes.PeekError, op.GetRawResponse().ReasonPhrase)
+            )
+            from _2 in guardnot(
+                op.Value is null,
+                Error.New(ErrorCodes.EmptyQueue, ErrorMessages.EmptyQueue)
+            )
+            from message in EffMaybe<T>(() => jsonToModel(op.Value.MessageText))
+            select message
+        ).Match(
+            QueueOperation.Success,
+            err =>
+                QueueOperation.Failure(
+                    QueueOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
+
+    public static Aff<QueueOperation> Read<T>(
+        QueueClient client,
+        Func<string, T> jsonToModel,
+        int visibilityInSeconds,
+        CancellationToken token
+    ) =>
+        (
+            from op in AffMaybe<Response<QueueMessage>>(
+                async () =>
+                    await client.ReceiveMessageAsync(
+                        TimeSpan.FromSeconds(visibilityInSeconds),
+                        token
+                    )
+            )
+            from _1 in guardnot(
+                op.GetRawResponse().IsError,
+                Error.New(ErrorCodes.ReadError, op.GetRawResponse().ReasonPhrase)
+            )
+            from _2 in guardnot(
+                op.Value is null,
+                Error.New(ErrorCodes.EmptyQueue, ErrorMessages.EmptyQueue)
+            )
+            from message in EffMaybe<T>(() => jsonToModel(op.Value.MessageText))
+            from _ in AffMaybe<Response>(
+                async () =>
+                    await client.DeleteMessageAsync(op.Value.MessageId, op.Value.PopReceipt, token)
+            )
+            select message
+        ).Match(
+            QueueOperation.Success,
+            err =>
+                QueueOperation.Failure(
+                    QueueOperationError.New(err.Code, err.Message, err.ToException())
+                )
+        );
+
+    public static Aff<List<T>> ReadBatch<T>(
+        QueueClient client,
+        int numberOfMessagesToRead,
+        Func<string, T> jsonToModel,
+        CancellationToken token,
+        int visibilityInSeconds = int.MaxValue
+    ) =>
+        from grpIds in Eff(
+            () => numberOfMessagesToRead <= 32 ? 1 : (numberOfMessagesToRead / 32) + 1
+        )
+        from a in EffMaybe<Seq<QueueMessage>>(
+            () =>
+                Enumerable
+                    .Range(1, grpIds)
+                    .ToSeq()
+                    .Fold(
+                        new List<QueueMessage>(),
+                        (_, _) =>
+                            client
+                                .ReceiveMessages(maxMessages: 32, cancellationToken: token)
+                                .Value.ToList()
+                    )
+                    .ToSeq())
+        from messages in Eff(() => a.Select(x => jsonToModel(x.MessageText)))
+        from _2 in AffMaybe<Seq<Response>>(
+            async () =>
+                await a.ToSeq()
+                    .SequenceParallel(
+                        x => client.DeleteMessageAsync(x.MessageId, x.PopReceipt, token)
+                    )
+        )
+        select messages.ToList();
 }
