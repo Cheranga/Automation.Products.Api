@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices.JavaScript;
 using Azure.Storage.Table.Wrapper.Queries;
 using Demo.MiniProducts.Api.Core;
 using Demo.MiniProducts.Api.DataAccess;
@@ -7,8 +6,6 @@ using Demo.MiniProducts.Api.Features.RegisterProduct;
 using LanguageExt;
 using LanguageExt.Common;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Storage.Queue.Helper;
 using static LanguageExt.Prelude;
 using static Microsoft.AspNetCore.Http.TypedResults;
 

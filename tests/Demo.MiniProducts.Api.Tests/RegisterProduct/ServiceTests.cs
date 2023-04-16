@@ -1,126 +1,203 @@
-using Azure.Storage.Table.Wrapper.Queries;
+using Azure.Storage.Table.Wrapper.Commands;
 using Demo.MiniProducts.Api.DataAccess;
-using Demo.MiniProducts.Api.Features;
-using Demo.MiniProducts.Api.Features.FindById;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using LanguageExt.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.Logging;
 using Moq;
-using Service = Demo.MiniProducts.Api.Features.FindById.Service;
+using Storage.Queue.Helper;
 
 namespace Demo.MiniProducts.Api.Tests.RegisterProduct;
 
-public class ServiceTests
+public static class ServiceTests
 {
-    private const string StorageCategory = "test";
-    private const string StorageTable = "products";
-    private const string StorageQueue = "products";
     private const string ProblemHeaderType = "application/problem+json";
 
-    private static RegisterProductSettings GetSettings() =>
-        new(StorageCategory, StorageQueue, StorageTable, "connection string");
-
-    [Fact]
-    public async Task ErrorWhenQuerying()
+    [Fact(DisplayName = "invalid request")]
+    public static async Task InvalidRequest()
     {
-        var logger = new Mock<ILogger>();
-
-        var queryService = new Mock<IQueryService>();
-        queryService
+        var validator = new Mock<IValidator<RegisterProductRequest>>();
+        validator
             .Setup(
                 x =>
-                    x.GetEntityAsync<ProductDataModel>(
-                        StorageCategory,
-                        StorageTable,
-                        "tech",
-                        "prod1",
-                        It.IsAny<CancellationToken>()
-                    )
-            )
-            .ReturnsAsync(QueryResult.Fail(Error.New(1, "error")));
-        var op = await Service.GetProductDetailsById(
-            "tech",
-            "prod1",
-            GetSettings(),
-            queryService.Object,
-            logger.Object
-        );
-        var problem = op.Result as ProblemHttpResult;
-        problem.Should().NotBeNull();
-        problem!.ContentType.Should().Be(ProblemHeaderType);
-        problem!.ProblemDetails.Type.Should().Be("Error");
-        problem.ProblemDetails.Title.Should().Be(ErrorCodes.FindProductError.ToString());
-        problem.ProblemDetails.Detail.Should().Be(ErrorMessages.FindProductError);
-        problem!.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
-        logger.VerifyLog(LogLevel.Error, Times.Once());
-    }
-
-    [Fact]
-    public async Task ProductExists()
-    {
-        var logger = new Mock<ILogger>();
-
-        var queryService = new Mock<IQueryService>();
-        queryService
-            .Setup(
-                x =>
-                    x.GetEntityAsync<ProductDataModel>(
-                        StorageCategory,
-                        StorageTable,
-                        "TECH",
-                        "PROD1",
+                    x.ValidateAsync(
+                        It.IsAny<RegisterProductRequest>(),
                         It.IsAny<CancellationToken>()
                     )
             )
             .ReturnsAsync(
-                () => QueryResult.Single(ProductDataModel.New("tech", "prod1", "laptop", "2010"))
+                new ValidationResult(new[] { new ValidationFailure("", "validation error") })
             );
-        var op = await Service.GetProductDetailsById(
-            "TECH",
-            "PROD1",
-            GetSettings(),
-            queryService.Object,
-            logger.Object
+
+        var op = await Service.RegisterProduct(
+            It.IsAny<RegisterProductRequest>(),
+            validator.Object,
+            It.IsAny<RegisterProductSettings>(),
+            It.IsAny<IQueueService>(),
+            It.IsAny<ICommandService>(),
+            It.IsAny<CancellationToken>()
         );
-        var response = op.Result as Ok<ProductResponse>;
-        response.Should().NotBeNull();
-        response!.Value.Should().NotBeNull();
-        response.Value!.Data.Category.Should().Be("tech");
-        response.Value.Data.Id.Should().Be("prod1");
-        response.Value.Data.Name.Should().Be("laptop");
-        response.Value.Data.Location.Should().Be("2010");
-        logger.VerifyLog(LogLevel.Information, Times.Once());
+
+        var result = op.Result as ValidationProblem;
+        result.Should().NotBeNull();
+        result!.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        result.ContentType.Should().Be(ProblemHeaderType);
+        result.ProblemDetails.Title.Should().Be("Invalid Request");
+        result.ProblemDetails.Type.Should().Be("InvalidRequest");
+        result.ProblemDetails.Errors.Count.Should().Be(1);
     }
 
-    [Fact]
-    public async Task ProductDoesNotExists()
+    [Fact(DisplayName = "cannot save product")]
+    public static async Task CannotSaveProduct()
     {
-        var logger = new Mock<ILogger>();
-
-        var queryService = new Mock<IQueryService>();
-        queryService
+        var validator = new Mock<IValidator<RegisterProductRequest>>();
+        validator
             .Setup(
                 x =>
-                    x.GetEntityAsync<ProductDataModel>(
-                        StorageCategory,
-                        StorageTable,
-                        "TECH",
-                        "PROD1",
+                    x.ValidateAsync(
+                        It.IsAny<RegisterProductRequest>(),
                         It.IsAny<CancellationToken>()
                     )
             )
-            .ReturnsAsync(() => QueryResult.Empty());
-        var op = await Service.GetProductDetailsById(
-            "TECH",
-            "PROD1",
-            GetSettings(),
-            queryService.Object,
-            logger.Object
+            .ReturnsAsync(new ValidationResult());
+        var commandService = new Mock<ICommandService>();
+        commandService
+            .Setup(
+                x =>
+                    x.UpsertAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<ProductDataModel>(),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
+            .ReturnsAsync(CommandOperation.Fail(Error.New(500, "cannot save")));
+
+        var op = await Service.RegisterProduct(
+            new RegisterProductRequest("prod1", "laptop", "2010", "tech"),
+            validator.Object,
+            new RegisterProductSettings("test", "products", "products", "connection string"),
+            It.IsAny<IQueueService>(),
+            commandService.Object,
+            It.IsAny<CancellationToken>()
         );
-        var response = op.Result as NotFound;
-        response.Should().NotBeNull();
+
+        var result = op.Result as ProblemHttpResult;
+        result.Should().NotBeNull();
+        result!.ContentType.Should().Be(ProblemHeaderType);
+        result.ProblemDetails.Title.Should().Be("500");
+        result.ProblemDetails.Type.Should().Be("Error");
+        result.ProblemDetails.Detail.Should().Be("cannot save");
+    }
+
+    [Fact(DisplayName = "cannot publish product registered event")]
+    public static async Task CannotPublishProductRegisteredEvent()
+    {
+        var validator = new Mock<IValidator<RegisterProductRequest>>();
+        validator
+            .Setup(
+                x =>
+                    x.ValidateAsync(
+                        It.IsAny<RegisterProductRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
+            .ReturnsAsync(new ValidationResult());
+        var commandService = new Mock<ICommandService>();
+        commandService
+            .Setup(
+                x =>
+                    x.UpsertAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<ProductDataModel>(),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
+            .ReturnsAsync(CommandOperation.Success());
+
+        var queueService = new Mock<IQueueService>();
+        queueService
+            .Setup(
+                x =>
+                    x.PublishAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>(),
+                        It.IsAny<(string queue, Func<string> content)>()
+                    )
+            )
+            .ReturnsAsync(QueueOperation.Failure(QueueOperationError.New(500, "cannot publish")));
+
+        var op = await Service.RegisterProduct(
+            new RegisterProductRequest("prod1", "laptop", "2010", "tech"),
+            validator.Object,
+            new RegisterProductSettings("test", "products", "products", "connection string"),
+            queueService.Object,
+            commandService.Object,
+            It.IsAny<CancellationToken>()
+        );
+
+        var result = op.Result as ProblemHttpResult;
+        result.Should().NotBeNull();
+        result!.ContentType.Should().Be(ProblemHeaderType);
+        result.ProblemDetails.Title.Should().Be("500");
+        result.ProblemDetails.Type.Should().Be("Error");
+        result.ProblemDetails.Detail.Should().Be("cannot publish");
+    }
+    
+    [Fact(DisplayName = "successfully saved and event published")]
+    public static async Task SuccessfullySavedAndEventPublished()
+    {
+        var validator = new Mock<IValidator<RegisterProductRequest>>();
+        validator
+            .Setup(
+                x =>
+                    x.ValidateAsync(
+                        It.IsAny<RegisterProductRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
+            .ReturnsAsync(new ValidationResult());
+        var commandService = new Mock<ICommandService>();
+        commandService
+            .Setup(
+                x =>
+                    x.UpsertAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<ProductDataModel>(),
+                        It.IsAny<CancellationToken>()
+                    )
+            )
+            .ReturnsAsync(CommandOperation.Success());
+
+        var queueService = new Mock<IQueueService>();
+        queueService
+            .Setup(
+                x =>
+                    x.PublishAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>(),
+                        It.IsAny<(string queue, Func<string> content)>()
+                    )
+            )
+            .ReturnsAsync(QueueOperation.Success);
+
+        var op = await Service.RegisterProduct(
+            new RegisterProductRequest("prod1", "laptop", "2010", "tech"),
+            validator.Object,
+            new RegisterProductSettings("test", "products", "products", "connection string"),
+            queueService.Object,
+            commandService.Object,
+            It.IsAny<CancellationToken>()
+        );
+
+        var result = op.Result as Created;
+        result.Should().NotBeNull();
+        result!.StatusCode.Should().Be(StatusCodes.Status201Created);
+        result.Location.Should().Contain("/products/tech/prod1");
     }
 }
