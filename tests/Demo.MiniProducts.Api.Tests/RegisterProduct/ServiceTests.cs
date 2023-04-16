@@ -7,6 +7,7 @@ using FluentValidation.Results;
 using LanguageExt.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Storage.Queue.Helper;
 
@@ -19,6 +20,7 @@ public static class ServiceTests
     [Fact(DisplayName = "invalid request")]
     public static async Task InvalidRequest()
     {
+        var logger = new Mock<ILogger>();
         var validator = new Mock<IValidator<RegisterProductRequest>>();
         validator
             .Setup(
@@ -38,6 +40,7 @@ public static class ServiceTests
             It.IsAny<RegisterProductSettings>(),
             It.IsAny<IQueueService>(),
             It.IsAny<ICommandService>(),
+            logger.Object,
             It.IsAny<CancellationToken>()
         );
 
@@ -53,6 +56,7 @@ public static class ServiceTests
     [Fact(DisplayName = "cannot save product")]
     public static async Task CannotSaveProduct()
     {
+        var logger = new Mock<ILogger>();
         var validator = new Mock<IValidator<RegisterProductRequest>>();
         validator
             .Setup(
@@ -82,6 +86,7 @@ public static class ServiceTests
             new RegisterProductSettings("test", "products", "products", "connection string"),
             It.IsAny<IQueueService>(),
             commandService.Object,
+            logger.Object,
             It.IsAny<CancellationToken>()
         );
 
@@ -96,6 +101,7 @@ public static class ServiceTests
     [Fact(DisplayName = "cannot publish product registered event")]
     public static async Task CannotPublishProductRegisteredEvent()
     {
+        var logger = new Mock<ILogger>();
         var validator = new Mock<IValidator<RegisterProductRequest>>();
         validator
             .Setup(
@@ -137,6 +143,7 @@ public static class ServiceTests
             new RegisterProductSettings("test", "products", "products", "connection string"),
             queueService.Object,
             commandService.Object,
+            logger.Object,
             It.IsAny<CancellationToken>()
         );
 
@@ -151,6 +158,7 @@ public static class ServiceTests
     [Fact(DisplayName = "successfully saved and event published")]
     public static async Task SuccessfullySavedAndEventPublished()
     {
+        var logger = new Mock<ILogger>();
         var validator = new Mock<IValidator<RegisterProductRequest>>();
         validator
             .Setup(
@@ -192,6 +200,7 @@ public static class ServiceTests
             new RegisterProductSettings("test", "products", "products", "connection string"),
             queueService.Object,
             commandService.Object,
+            logger.Object,
             It.IsAny<CancellationToken>()
         );
 
