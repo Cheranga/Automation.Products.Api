@@ -1,11 +1,12 @@
 using System.Net.Mime;
+using Azure.Storage.Table.Wrapper.Commands;
 using Azure.Storage.Table.Wrapper.Queries;
-using Demo.MiniProducts.Api;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
-using RegisterProduct = Demo.MiniProducts.Api.Features.RegisterProduct;
-using ChangeLocation = Demo.MiniProducts.Api.Features.ChangeLocation;
+using Storage.Queue.Helper;
+using Bootstrapper = Demo.MiniProducts.Api.Bootstrapper;
 using FindProduct = Demo.MiniProducts.Api.Features.FindById;
 
 const string Route = "products";
@@ -45,15 +46,36 @@ productsApi
     });
 
 productsApi
-    .MapPost("/", RegisterProduct.Service.RegisterProduct)
+    .MapPost(
+        "/",
+        (
+            [FromBody] RegisterProductRequest request,
+            [FromServices] IValidator<RegisterProductRequest> validator,
+            [FromServices] RegisterProductSettings settings,
+            [FromServices] IQueueService queueService,
+            [FromServices] ICommandService commandService,
+            [FromServices] ILoggerFactory loggerFactory
+        ) =>
+            Service.RegisterProduct(
+                request,
+                validator,
+                settings,
+                queueService,
+                commandService,
+                loggerFactory.CreateLogger("RegisterProduct")
+            )
+    )
     .Accepts<RegisterProductRequest>(MediaTypeNames.Application.Json)
-    .WithName(nameof(RegisterProduct.Service.RegisterProduct))
+    .WithName(nameof(Service.RegisterProduct))
     .WithSummary("Registers a product.")
     .WithOpenApi();
 
 productsApi
-    .MapPut("/{category}/{id}", ChangeLocation.Service.ChangeLocation)
-    .WithName(nameof(ChangeLocation.Service.ChangeLocation))
+    .MapPut(
+        "/{category}/{id}",
+        Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation
+    )
+    .WithName(nameof(Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation))
     .WithSummary("Update product by searching for product id.")
     .WithOpenApi();
 

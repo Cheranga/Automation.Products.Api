@@ -3,11 +3,18 @@ using Azure.Storage.Table.Wrapper.Commands;
 using Demo.MiniProducts.Api.Core;
 using Demo.MiniProducts.Api.Extensions;
 using FluentValidation;
+using FluentValidation.Results;
+using LanguageExt;
+using LanguageExt.Common;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Storage.Queue.Helper;
+using static LanguageExt.Prelude;
 using static Microsoft.AspNetCore.Http.TypedResults;
-using static Demo.MiniProducts.Api.Extensions.ApiOperationExtensions;
+using CR = Azure.Storage.Table.Wrapper.Commands.CommandResponse<
+    Azure.Storage.Table.Wrapper.Commands.CommandOperation.CommandFailedOperation,
+    Azure.Storage.Table.Wrapper.Commands.CommandOperation.CommandSuccessOperation
+>;
 
 namespace Demo.MiniProducts.Api.Features.RegisterProduct;
 
@@ -18,44 +25,123 @@ public static class Service
     public static async Task<
         Results<ValidationProblem, ProblemHttpResult, Created>
     > RegisterProduct(
-        [FromBody] RegisterProductRequest request,
-        [FromServices] IValidator<RegisterProductRequest> validator,
-        [FromServices] RegisterProductSettings settings,
-        [FromServices] IQueueService queueService,
-        [FromServices] ICommandService commandService,
+        RegisterProductRequest request,
+        IValidator<RegisterProductRequest> validator,
+        RegisterProductSettings settings,
+        IQueueService queueService,
+        ICommandService commandService,
+        ILogger logger,
         CancellationToken token = new()
-    )
-    {
-        var validation = await Validate(request, validator, token);
-        if (validation.Operation is ApiOperation.ApiValidationFailureOperation vr)
-        {
-            return vr.ValidationResult.ToValidationErrorResponse();
-        }
+    ) =>
+        (
+            await (
+                from valOp in ValidateRequest(request, validator, token)
+                from upsertOp in UpsertDataToTable(
+                    settings.Category,
+                    settings.Table,
+                    request,
+                    commandService,
+                    token
+                )
+                from publishEventOp in PublishEventToQueue(
+                    () => JsonSerializer.Serialize(request.ToDataModel()),
+                    settings.Category,
+                    settings.Queue,
+                    queueService,
+                    token
+                )
+                select publishEventOp
+            ).Run()
+        ).Match(
+            _ =>
+            {
+                logger.LogInformation(
+                    "Product registration accepted @{Category} @{ProductId}",
+                    request.Category,
+                    request.ProductId
+                );
 
-        var upsert = await Upsert(
-            settings.Category,
-            settings.Table,
-            request.ToDataModel(),
-            commandService,
-            token
+                return Created($"/{Route}/{request.Category}/{request.ProductId}");
+            },
+            err =>
+            {
+                logger.LogError("Error occurred {@Error}", err);
+                return GetErrorResponse(err);
+            }
         );
-        if (upsert.Operation is ApiOperation.ApiFailedOperation f)
-        {
-            return f.ToErrorResponse();
-        }
 
-        var publishEvent = await PublishEvent(
-            () => JsonSerializer.Serialize(request.ToEvent()),
-            settings.Category,
-            settings.Queue,
-            queueService,
-            token
-        );
-        if (publishEvent.Operation is ApiOperation.ApiFailedOperation fp)
+    private static Results<ValidationProblem, ProblemHttpResult, Created> GetErrorResponse(
+        Error error
+    ) =>
+        error switch
         {
-            return fp.ToErrorResponse();
-        }
-        
-        return Created($"/{Route}/{request.Category}/{request.ProductId}");
-    }
+            ApiError<ValidationResult> ve => ve.Data.ToValidationErrorResponse(),
+            ApiError<CommandOperation.CommandFailedOperation> ce
+                => Problem(
+                    new ProblemDetails
+                    {
+                        Type = "Error",
+                        Title = ce.Data.ErrorCode.ToString(),
+                        Detail = ce.Data.ErrorMessage,
+                        Status = StatusCodes.Status500InternalServerError
+                    }
+                ),
+            ApiError<QueueOperation.FailedOperation> ce
+                => Problem(
+                    new ProblemDetails
+                    {
+                        Type = "Error",
+                        Title = ce.Data.Error.Code.ToString(),
+                        Detail = ce.Data.Error.Message,
+                        Status = StatusCodes.Status500InternalServerError
+                    }
+                ),
+            _ => error.ToErrorResponse()
+        };
+
+    private static Aff<ValidationResult> ValidateRequest(
+        RegisterProductRequest request,
+        IValidator<RegisterProductRequest> validator,
+        CancellationToken token
+    ) =>
+        from vr in AffMaybe<ValidationResult>(
+            async () => await validator.ValidateAsync(request, token)
+        )
+        from _ in guard(vr.IsValid, ApiError<ValidationResult>.New(vr))
+        select vr;
+
+    private static Aff<CR> UpsertDataToTable(
+        string category,
+        string table,
+        RegisterProductRequest request,
+        ICommandService commandService,
+        CancellationToken token
+    ) =>
+        from op in AffMaybe<CR>(
+            async () =>
+                await commandService.UpsertAsync(category, table, request.ToDataModel(), token)
+        )
+        from _ in guardnot(
+            op.Operation is CommandOperation.CommandFailedOperation f,
+            ApiError<CommandOperation.CommandFailedOperation>.New(
+                (op.Operation as CommandOperation.CommandFailedOperation)!
+            )
+        )
+        select op;
+
+    private static Aff<QueueOperation> PublishEventToQueue(
+        Func<string> eventContent,
+        string category,
+        string queue,
+        IQueueService queueService,
+        CancellationToken token
+    ) =>
+        from op in AffMaybe<QueueOperation>(
+            async () => await queueService.PublishAsync(category, token, (queue, eventContent))
+        )
+        from _ in guardnot(
+            op is QueueOperation.FailedOperation,
+            ApiError<QueueOperation.FailedOperation>.New((op as QueueOperation.FailedOperation)!)
+        )
+        select op;
 }
