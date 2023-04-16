@@ -4,6 +4,7 @@ using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Features.FindById;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentValidation.Results;
+using LanguageExt.Common;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using static Microsoft.AspNetCore.Http.TypedResults;
@@ -52,10 +53,21 @@ public static class ResponseExtensions
             }
         );
 
+    public static ProblemHttpResult ToErrorResponse(this Error error) =>
+        Problem(
+            new ProblemDetails
+            {
+                Type = "Error",
+                Title = error.Code.ToString(),
+                Detail = error.Message,
+                Status = StatusCodes.Status500InternalServerError
+            }
+        );
+
     public static ProductRegisteredEvent ToEvent(this RegisterProductRequest request) =>
         new(request.ProductId, request.Category, DateTime.UtcNow);
 
-    public static ProductResponse ToProductResponse(this ProductDataModel dataModel) =>
+    public static Features.FindById.ProductResponse ToProductResponse(this ProductDataModel dataModel) =>
         new(
             new ProductDto(
                 dataModel.ProductId,

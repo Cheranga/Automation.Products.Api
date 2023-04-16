@@ -1,6 +1,9 @@
+using System.ComponentModel;
 using System.Net.Mime;
+using Azure.Storage.Table.Wrapper.Queries;
 using Demo.MiniProducts.Api;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using RegisterProduct = Demo.MiniProducts.Api.Features.RegisterProduct;
 using ChangeLocation = Demo.MiniProducts.Api.Features.ChangeLocation;
@@ -14,7 +17,23 @@ app.UseSwaggerUI();
 var productsApi = app.MapGroup($"/{Route}/").WithOpenApi();
 
 productsApi
-    .MapGet("/{category}/{id}", FindProduct.Service.GetProductDetailsById)
+    .MapGet(
+        "/{category}/{id}",
+        (
+            [FromRoute] string category,
+            [FromRoute] string id,
+            [FromServices] RegisterProductSettings settings,
+            [FromServices] IQueryService queryService,
+            [FromServices] ILoggerFactory loggerFactory
+        ) =>
+            FindProduct.Service.GetProductDetailsById(
+                category,
+                id,
+                settings,
+                queryService,
+                loggerFactory.CreateLogger("FindProductsById")
+            )
+    )
     .WithSummary("Get product by product id.")
     .WithOpenApi(operation =>
     {
@@ -34,10 +53,7 @@ productsApi
     .WithOpenApi();
 
 productsApi
-    .MapPut(
-        "/{category}/{id}",
-        ChangeLocation.Service.ChangeLocation
-    )
+    .MapPut("/{category}/{id}", ChangeLocation.Service.ChangeLocation)
     .WithName(nameof(ChangeLocation.Service.ChangeLocation))
     .WithSummary("Update product by searching for product id.")
     .WithOpenApi();
