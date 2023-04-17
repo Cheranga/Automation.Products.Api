@@ -3,6 +3,19 @@
 ## Context
 To provide a Products API to use for automation.
 
+## Using the API in your local environment
+* Install Docker Desktop.
+* Install Azure Storage Explorer.
+* Open a command prompt and run the below command to download and run `Azurite` as a container in detached mode.
+
+```dockerfile
+docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite
+```
+* Open `Azure Storage Explorer` and create below. This table and queues are needed for the API to function.
+  * `registrations` table.
+  * `registrations` queue.
+  * `update-registrations` queue.
+
 ## Features
 
 ### Register product
