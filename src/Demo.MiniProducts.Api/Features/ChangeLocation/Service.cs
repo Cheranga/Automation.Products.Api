@@ -22,12 +22,12 @@ public static class Service
         Results<ValidationProblem, ProblemHttpResult, NotFound, NoContent>
     > ChangeLocation(
         ChangeLocationRequest request,
-        [FromServices] IValidator<ChangeLocationRequest> validator,
-        [FromServices] UpdateProductSettings updateSettings,
-        [FromServices] RegisterProductSettings registerSettings,
-        [FromServices] IQueueService queueService,
-        [FromServices] IQueryService queryService,
-        [FromServices] ICommandService commandService,
+        IValidator<ChangeLocationRequest> validator,
+        UpdateProductSettings updateSettings,
+        RegisterProductSettings registerSettings,
+        IQueueService queueService,
+        IQueryService queryService,
+        ICommandService commandService,
         CancellationToken token = new()
     ) =>
         (
