@@ -1,29 +1,18 @@
 using System.Text.Json;
-using Azure.Storage.Table.Wrapper.Commands;
-using Azure.Storage.Table.Wrapper.Queries;
 using Demo.MiniProducts.Api.Core;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Extensions;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentValidation;
 using FluentValidation.Results;
+using Funky.Azure.DataTable.Extensions.Commands;
+using LanguageExt;
+using LanguageExt.Common;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Storage.Queue.Helper;
-using LanguageExt;
-using LanguageExt.Common;
 using static LanguageExt.Prelude;
 using static Microsoft.AspNetCore.Http.TypedResults;
-using QR = Azure.Storage.Table.Wrapper.Queries.QueryResponse<
-    Azure.Storage.Table.Wrapper.Queries.QueryResult.QueryFailedResult,
-    Azure.Storage.Table.Wrapper.Queries.QueryResult.EmptyResult,
-    Azure.Storage.Table.Wrapper.Queries.QueryResult.SingleResult<Demo.MiniProducts.Api.DataAccess.ProductDataModel>
->;
-
-using CR = Azure.Storage.Table.Wrapper.Commands.CommandResponse<
-    Azure.Storage.Table.Wrapper.Commands.CommandOperation.CommandFailedOperation,
-    Azure.Storage.Table.Wrapper.Commands.CommandOperation.CommandSuccessOperation
->;
 
 namespace Demo.MiniProducts.Api.Features.ChangeLocation;
 
@@ -124,7 +113,13 @@ public static class Service
         from _ in guard(vr.IsValid, ApiError<ValidationResult>.New(vr))
         select vr;
 
-    private static Aff<QR> GetProductFromTable(
+    private static Aff<
+        QueryResponse<
+            QueryResult.QueryFailedResult,
+            QueryResult.EmptyResult,
+            QueryResult.SingleResult<ProductDataModel>
+        >
+    > GetProductFromTable(
         string category,
         string table,
         string partitionKey,
@@ -144,7 +139,12 @@ public static class Service
         )
         select op;
 
-    private static Aff<CR> UpdateProductLocation(
+    private static Aff<
+        CommandResponse<
+            CommandOperation.CommandFailedOperation,
+            CommandOperation.CommandSuccessOperation
+        >
+    > UpdateProductLocation(
         string category,
         string table,
         ProductDataModel dataModel,
@@ -162,7 +162,13 @@ public static class Service
         )
         select op;
 
-    private static Fin<ProductDataModel> ToProductDataModel(this QR queryResponse) =>
+    private static Fin<ProductDataModel> ToProductDataModel(
+        this QueryResponse<
+            QueryResult.QueryFailedResult,
+            QueryResult.EmptyResult,
+            QueryResult.SingleResult<ProductDataModel>
+        > queryResponse
+    ) =>
         queryResponse.Response switch
         {
             QueryResult.EmptyResult er

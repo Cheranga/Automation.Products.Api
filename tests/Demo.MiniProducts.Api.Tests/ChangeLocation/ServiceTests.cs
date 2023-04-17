@@ -1,15 +1,13 @@
-using Azure.Storage.Table.Wrapper.Commands;
-using Azure.Storage.Table.Wrapper.Queries;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Features.ChangeLocation;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
+using Funky.Azure.DataTable.Extensions.Commands;
 using LanguageExt.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Storage.Queue.Helper;
 using Service = Demo.MiniProducts.Api.Features.ChangeLocation.Service;

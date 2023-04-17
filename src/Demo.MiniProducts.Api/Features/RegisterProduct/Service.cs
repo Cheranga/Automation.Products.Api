@@ -1,9 +1,9 @@
 using System.Text.Json;
-using Azure.Storage.Table.Wrapper.Commands;
 using Demo.MiniProducts.Api.Core;
 using Demo.MiniProducts.Api.Extensions;
 using FluentValidation;
 using FluentValidation.Results;
+using Funky.Azure.DataTable.Extensions.Commands;
 using LanguageExt;
 using LanguageExt.Common;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -11,9 +11,9 @@ using Microsoft.AspNetCore.Mvc;
 using Storage.Queue.Helper;
 using static LanguageExt.Prelude;
 using static Microsoft.AspNetCore.Http.TypedResults;
-using CR = Azure.Storage.Table.Wrapper.Commands.CommandResponse<
-    Azure.Storage.Table.Wrapper.Commands.CommandOperation.CommandFailedOperation,
-    Azure.Storage.Table.Wrapper.Commands.CommandOperation.CommandSuccessOperation
+using CR = Funky.Azure.DataTable.Extensions.Commands.CommandResponse<
+    Funky.Azure.DataTable.Extensions.Commands.CommandOperation.CommandFailedOperation,
+    Funky.Azure.DataTable.Extensions.Commands.CommandOperation.CommandSuccessOperation
 >;
 
 namespace Demo.MiniProducts.Api.Features.RegisterProduct;

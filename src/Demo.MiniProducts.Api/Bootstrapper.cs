@@ -1,7 +1,7 @@
-﻿using Azure.Storage.Table.Wrapper.Core;
-using Demo.MiniProducts.Api.Features.ChangeLocation;
+﻿using Demo.MiniProducts.Api.Features.ChangeLocation;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentValidation;
+using Funky.Azure.DataTable.Extensions.Core;
 using Storage.Queue.Helper;
 using Messages = Storage.Queue.Helper.Bootstrapper;
 

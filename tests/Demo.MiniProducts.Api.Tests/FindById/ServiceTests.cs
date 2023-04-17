@@ -1,9 +1,9 @@
-using Azure.Storage.Table.Wrapper.Queries;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Features;
 using Demo.MiniProducts.Api.Features.FindById;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentAssertions;
+using Funky.Azure.DataTable.Extensions.Queries;
 using LanguageExt.Common;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
-using Azure.Storage.Table.Wrapper.Core;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
+using Funky.Azure.DataTable.Extensions.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Storage.Queue.Helper;

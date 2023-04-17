@@ -1,9 +1,8 @@
 using System.Net.Mime;
-using Azure.Storage.Table.Wrapper.Commands;
-using Azure.Storage.Table.Wrapper.Queries;
 using Demo.MiniProducts.Api.Features.ChangeLocation;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentValidation;
+using Funky.Azure.DataTable.Extensions.Commands;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Storage.Queue.Helper;

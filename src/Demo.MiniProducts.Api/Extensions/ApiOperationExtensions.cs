@@ -1,8 +1,7 @@
 using Azure.Data.Tables;
-using Azure.Storage.Table.Wrapper.Commands;
-using Azure.Storage.Table.Wrapper.Queries;
 using Demo.MiniProducts.Api.Core;
 using FluentValidation;
+using Funky.Azure.DataTable.Extensions.Commands;
 using Storage.Queue.Helper;
 
 namespace Demo.MiniProducts.Api.Extensions;

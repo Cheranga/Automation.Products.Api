@@ -1,4 +1,3 @@
-using Azure.Storage.Table.Wrapper.Queries;
 using Demo.MiniProducts.Api.Core;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Extensions;
@@ -8,10 +7,10 @@ using LanguageExt.Common;
 using Microsoft.AspNetCore.Http.HttpResults;
 using static LanguageExt.Prelude;
 using static Microsoft.AspNetCore.Http.TypedResults;
-using QR = Azure.Storage.Table.Wrapper.Queries.QueryResponse<
-    Azure.Storage.Table.Wrapper.Queries.QueryResult.QueryFailedResult,
-    Azure.Storage.Table.Wrapper.Queries.QueryResult.EmptyResult,
-    Azure.Storage.Table.Wrapper.Queries.QueryResult.SingleResult<Demo.MiniProducts.Api.DataAccess.ProductDataModel>
+using QR = Funky.Azure.DataTable.Extensions.Queries.QueryResponse<
+    Funky.Azure.DataTable.Extensions.Queries.QueryResult.QueryFailedResult,
+    Funky.Azure.DataTable.Extensions.Queries.QueryResult.EmptyResult, 
+    Funky.Azure.DataTable.Extensions.Queries.QueryResult.SingleResult<Demo.MiniProducts.Api.DataAccess.ProductDataModel>
 >;
 
 namespace Demo.MiniProducts.Api.Features.FindById;
