@@ -8,6 +8,11 @@ using LanguageExt.Common;
 using Microsoft.AspNetCore.Http.HttpResults;
 using static LanguageExt.Prelude;
 using static Microsoft.AspNetCore.Http.TypedResults;
+using QR = Azure.Storage.Table.Wrapper.Queries.QueryResponse<
+    Azure.Storage.Table.Wrapper.Queries.QueryResult.QueryFailedResult,
+    Azure.Storage.Table.Wrapper.Queries.QueryResult.EmptyResult,
+    Azure.Storage.Table.Wrapper.Queries.QueryResult.SingleResult<Demo.MiniProducts.Api.DataAccess.ProductDataModel>
+>;
 
 namespace Demo.MiniProducts.Api.Features.FindById;
 
@@ -29,7 +34,7 @@ public static class Service
     ) =>
         (
             await (
-                from op in Get(
+                from op in GetProductFromTable(
                     queryService,
                     settings.Category,
                     settings.Table,
@@ -54,7 +59,7 @@ public static class Service
             }
         );
 
-    private static Aff<GetProductResponse> Get(
+    private static Aff<QR> GetProductFromTable(
         IQueryService queryService,
         string category,
         string table,
@@ -63,7 +68,7 @@ public static class Service
         CancellationToken token
     )
     {
-        return AffMaybe<GetProductResponse>(
+        return AffMaybe<QR>(
             async () =>
                 await queryService.GetEntityAsync<ProductDataModel>(
                     category,
