@@ -122,7 +122,7 @@ public static class Service
                 await commandService.UpsertAsync(category, table, request.ToDataModel(), token)
         )
         from _ in guardnot(
-            op.Operation is CommandOperation.CommandFailedOperation f,
+            op.Operation is CommandOperation.CommandFailedOperation,
             ApiError<CommandOperation.CommandFailedOperation>.New(
                 (op.Operation as CommandOperation.CommandFailedOperation)!
             )
