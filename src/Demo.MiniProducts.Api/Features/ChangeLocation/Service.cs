@@ -44,9 +44,13 @@ public static class Service
         (
             await (
                 from vOp in ValidateRequest(request, validator, token)
+                let regCategory = registerSettings.Category
+                let table = registerSettings.Table
+                let updateCategory = updateSettings.Category
+                let queue = updateSettings.Queue
                 from getOp in GetProductFromTable(
-                    registerSettings.Category,
-                    registerSettings.Table,
+                    regCategory,
+                    table,
                     request.Category.ToUpper(),
                     request.Id.ToUpper(),
                     queryService,
@@ -54,8 +58,8 @@ public static class Service
                 )
                 from dataModel in ToProductDataModel(getOp).ToEff()
                 from updateOp in UpdateProductLocation(
-                    registerSettings.Category,
-                    registerSettings.Table,
+                    regCategory,
+                    table,
                     ProductDataModel.New(
                         dataModel.Category,
                         dataModel.ProductId,
@@ -109,62 +113,6 @@ public static class Service
                 )
         };
 
-    private static async Task<
-        ApiOperationResult<ApiOperation.ApiFailedOperation, ApiOperation.ApiSuccessfulOperation>
-    > UpdateLocation(
-        ProductDataModel product,
-        RegisterProductSettings registerSettings,
-        ICommandService commandService,
-        CancellationToken token
-    )
-    {
-        var op = await commandService.UpdateAsync(
-            registerSettings.Category,
-            registerSettings.Table,
-            product,
-            token
-        );
-
-        return op.Operation switch
-        {
-            CommandOperation.CommandFailedOperation f
-                => ApiOperation.Fail(f.ErrorCode, f.ErrorMessage, f.Exception),
-            CommandOperation.CommandSuccessOperation => ApiOperation.Success(),
-            _ => throw new NotSupportedException()
-        };
-    }
-
-    private static async Task<
-        ApiOperationResult<ApiOperation.ApiFailedOperation, ApiOperation.ApiSuccessfulOperation>
-    > PublishLocationChangedEvent(
-        string previousLocationCode,
-        ChangeLocationRequest request,
-        UpdateProductSettings updatedSettings,
-        IQueueService queueService,
-        CancellationToken token
-    )
-    {
-        var @event = new LocationChangedEvent(
-            request.Id,
-            previousLocationCode,
-            request.LocationCode
-        );
-
-        var op = await queueService.PublishAsync(
-            updatedSettings.Category,
-            token,
-            (updatedSettings.Queue, () => JsonSerializer.Serialize(@event))
-        );
-
-        return op switch
-        {
-            QueueOperation.FailedOperation f
-                => ApiOperation.Fail(f.Error.Code, f.Error.Message, f.Error.ToException()),
-            QueueOperation.SuccessOperation => ApiOperation.Success(),
-            _ => throw new NotSupportedException()
-        };
-    }
-
     private static Aff<ValidationResult> ValidateRequest(
         ChangeLocationRequest request,
         IValidator<ChangeLocationRequest> validator,
@@ -193,10 +141,6 @@ public static class Service
                     rowKey,
                     token
                 )
-        )
-        from _ in guardnot(
-            op.Response is QueryResult.EmptyResult,
-            ApiError<QueryResult.EmptyResult>.New((op.Response as QueryResult.EmptyResult)!)
         )
         select op;
 

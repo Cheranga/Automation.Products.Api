@@ -96,7 +96,7 @@ public static class ServiceTests
                 LocationCode = "2020"
             },
             validator.Object,
-            It.IsAny<UpdateProductSettings>(),
+            new UpdateProductSettings("test", "products", "connection string"),
             new RegisterProductSettings("test", "products", "products", "connection string"),
             It.IsAny<IQueueService>(),
             queryService.Object,
@@ -159,7 +159,7 @@ public static class ServiceTests
                 LocationCode = "2020"
             },
             validator.Object,
-            It.IsAny<UpdateProductSettings>(),
+            new UpdateProductSettings("test", "products", "connection string"),
             new RegisterProductSettings("test", "products", "products", "connection string"),
             It.IsAny<IQueueService>(),
             queryService.Object,
