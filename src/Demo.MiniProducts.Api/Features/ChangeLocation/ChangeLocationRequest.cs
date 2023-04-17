@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Demo.MiniProducts.Api.Extensions;
 
 namespace Demo.MiniProducts.Api.Features.ChangeLocation;
 
+[ExcludeFromCodeCoverage]
 public record ChangeLocationRequest
 {
     public string Category { get; set; } = string.Empty;

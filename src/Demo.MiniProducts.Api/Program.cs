@@ -1,10 +1,15 @@
 using System.Net.Mime;
-using Demo.MiniProducts.Api;
+using Azure.Storage.Table.Wrapper.Commands;
+using Azure.Storage.Table.Wrapper.Queries;
+using Demo.MiniProducts.Api.Features.ChangeLocation;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
-using RegisterProduct = Demo.MiniProducts.Api.Features.RegisterProduct;
-using ChangeLocation = Demo.MiniProducts.Api.Features.ChangeLocation;
+using Storage.Queue.Helper;
+using Bootstrapper = Demo.MiniProducts.Api.Bootstrapper;
 using FindProduct = Demo.MiniProducts.Api.Features.FindById;
+using Service = Demo.MiniProducts.Api.Features.RegisterProduct.Service;
 
 const string Route = "products";
 
@@ -14,7 +19,23 @@ app.UseSwaggerUI();
 var productsApi = app.MapGroup($"/{Route}/").WithOpenApi();
 
 productsApi
-    .MapGet("/{category}/{id}", FindProduct.Service.GetProductDetailsById)
+    .MapGet(
+        "/{category}/{id}",
+        (
+            [FromRoute] string category,
+            [FromRoute] string id,
+            [FromServices] RegisterProductSettings settings,
+            [FromServices] IQueryService queryService,
+            [FromServices] ILoggerFactory loggerFactory
+        ) =>
+            FindProduct.Service.GetProductDetailsById(
+                category,
+                id,
+                settings,
+                queryService,
+                loggerFactory.CreateLogger("FindProductsById")
+            )
+    )
     .WithSummary("Get product by product id.")
     .WithOpenApi(operation =>
     {
@@ -27,18 +48,53 @@ productsApi
     });
 
 productsApi
-    .MapPost("/", RegisterProduct.Service.RegisterProduct)
+    .MapPost(
+        "/",
+        (
+            [FromBody] RegisterProductRequest request,
+            [FromServices] IValidator<RegisterProductRequest> validator,
+            [FromServices] RegisterProductSettings settings,
+            [FromServices] IQueueService queueService,
+            [FromServices] ICommandService commandService,
+            [FromServices] ILoggerFactory loggerFactory
+        ) =>
+            Service.RegisterProduct(
+                request,
+                validator,
+                settings,
+                queueService,
+                commandService,
+                loggerFactory.CreateLogger("RegisterProduct")
+            )
+    )
     .Accepts<RegisterProductRequest>(MediaTypeNames.Application.Json)
-    .WithName(nameof(RegisterProduct.Service.RegisterProduct))
+    .WithName(nameof(Service.RegisterProduct))
     .WithSummary("Registers a product.")
     .WithOpenApi();
 
 productsApi
     .MapPut(
         "/{category}/{id}",
-        ChangeLocation.Service.ChangeLocation
+        (
+            ChangeLocationRequest request,
+            [FromServices] IValidator<ChangeLocationRequest> validator,
+            [FromServices] UpdateProductSettings updateSettings,
+            [FromServices] RegisterProductSettings registerSettings,
+            [FromServices] IQueueService queueService,
+            [FromServices] IQueryService queryService,
+            [FromServices] ICommandService commandService
+        ) =>
+            Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation(
+                request,
+                validator,
+                updateSettings,
+                registerSettings,
+                queueService,
+                queryService,
+                commandService
+            )
     )
-    .WithName(nameof(ChangeLocation.Service.ChangeLocation))
+    .WithName(nameof(Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation))
     .WithSummary("Update product by searching for product id.")
     .WithOpenApi();
 

@@ -12,6 +12,7 @@ public static class Bootstrapper
     public static WebApplication Setup(params string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        builder.Logging.ClearProviders().AddJsonConsole();
 
         RegisterSwagger(builder);
         RegisterSettings(builder);

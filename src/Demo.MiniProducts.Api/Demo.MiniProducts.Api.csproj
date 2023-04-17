@@ -9,9 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CCHAT.Azure.Storage.Table.Wrapper" Version="2.1.0" />
+        <PackageReference Include="CCHAT.Azure.Storage.Table.Wrapper" Version="2.2.0" />
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.5.1" />
         <PackageReference Include="HybridModelBinding" Version="0.18.0" />
+        <PackageReference Include="LanguageExt.Core" Version="4.4.3" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.4" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.4" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
