@@ -61,14 +61,11 @@ public static class Service
                 from publishOp in PublishEvent(
                     updateSettings.Category,
                     updateSettings.Queue,
-                    () =>
-                        JsonSerializer.Serialize(
-                            new LocationChangedEvent(
-                                request.Id,
-                                dataModel.LocationCode,
-                                request.LocationCode
-                            )
-                        ),
+                    new LocationChangedEvent(
+                        request.Id,
+                        dataModel.LocationCode,
+                        request.LocationCode
+                    ).ToStringFunc(),
                     queueService,
                     token
                 )

@@ -44,7 +44,7 @@ public static class Service
                     token
                 )
                 from publishEventOp in PublishEventToQueue(
-                    () => JsonSerializer.Serialize(request.ToDataModel()),
+                    request.ToEvent().ToStringFunc(),
                     settings.Category,
                     settings.Queue,
                     queueService,

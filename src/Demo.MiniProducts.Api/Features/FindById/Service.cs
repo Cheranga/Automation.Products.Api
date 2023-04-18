@@ -1,4 +1,3 @@
-using Demo.MiniProducts.Api.Core;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Extensions;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
@@ -9,15 +8,11 @@ using static LanguageExt.Prelude;
 using static Microsoft.AspNetCore.Http.TypedResults;
 using QR = Funky.Azure.DataTable.Extensions.Queries.QueryResponse<
     Funky.Azure.DataTable.Extensions.Queries.QueryResult.QueryFailedResult,
-    Funky.Azure.DataTable.Extensions.Queries.QueryResult.EmptyResult, 
+    Funky.Azure.DataTable.Extensions.Queries.QueryResult.EmptyResult,
     Funky.Azure.DataTable.Extensions.Queries.QueryResult.SingleResult<Demo.MiniProducts.Api.DataAccess.ProductDataModel>
 >;
 
 namespace Demo.MiniProducts.Api.Features.FindById;
-
-public record ProductDto(string Id, string Name, string Location, string Category);
-
-public record ProductResponse(ProductDto Data) : ResponseDtoBase<ProductDto>(Data);
 
 public static class Service
 {

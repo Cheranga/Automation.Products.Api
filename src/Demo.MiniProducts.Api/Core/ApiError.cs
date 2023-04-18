@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using LanguageExt.Common;
 
 namespace Demo.MiniProducts.Api.Core;
 
+[ExcludeFromCodeCoverage]
 public record ApiError<T> : Error
 {
     public T Data { get; }
