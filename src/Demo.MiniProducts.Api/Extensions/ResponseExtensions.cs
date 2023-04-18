@@ -1,4 +1,3 @@
-using Demo.MiniProducts.Api.Core;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Features.FindById;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
@@ -31,17 +30,6 @@ public static class ResponseExtensions
         );
 
     public static ProblemHttpResult ToErrorResponse(this QueryResult.QueryFailedResult failure) =>
-        Problem(
-            new ProblemDetails
-            {
-                Type = "Error",
-                Title = failure.ErrorCode.ToString(),
-                Detail = failure.ErrorMessage,
-                Status = StatusCodes.Status500InternalServerError
-            }
-        );
-
-    public static ProblemHttpResult ToErrorResponse(this ApiOperation.ApiFailedOperation failure) =>
         Problem(
             new ProblemDetails
             {

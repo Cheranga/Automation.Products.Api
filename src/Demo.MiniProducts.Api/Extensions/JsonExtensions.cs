@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Demo.MiniProducts.Api.Extensions;
 
@@ -17,4 +18,7 @@ public static class JsonExtensions
             return record ?? new T();
         }
     }
+
+    public static Func<string> ToStringFunc<T>(this T model) =>
+        () => JsonSerializer.Serialize(model);
 }

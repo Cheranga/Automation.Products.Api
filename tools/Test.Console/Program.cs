@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Demo.MiniProducts.Api.Extensions;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using Funky.Azure.DataTable.Extensions.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -114,7 +115,7 @@ static async Task DoQueues(IHost host)
     var op = await queueService.PublishAsync(
         "test",
         new CancellationToken(),
-        ("registrations1", () => JsonSerializer.Serialize(@event), 5, 10)
+        ("registrations1", @event.ToStringFunc(), 5, 10)
     );
 
     Console.WriteLine(
