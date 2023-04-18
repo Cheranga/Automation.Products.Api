@@ -1,9 +1,11 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Azure;
 using Azure.Data.Tables;
 
 namespace Demo.MiniProducts.Api.DataAccess;
 
+[ExcludeFromCodeCoverage]
 [DebuggerDisplay("{Category} - {ProductId} - {Name} - {LocationCode}")]
 public class ProductDataModel : ITableEntity
 {

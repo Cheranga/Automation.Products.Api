@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Demo.MiniProducts.Api.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class JsonExtensions
 {
     public static async ValueTask<T> ToModel<T>(this Stream stream) where T : class, new()

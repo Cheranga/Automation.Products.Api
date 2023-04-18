@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using FluentValidation;
 using FluentValidation.Results;
 
 namespace Demo.MiniProducts.Api.Core;
 
+[ExcludeFromCodeCoverage]
 public class ModelValidatorBase<T> : AbstractValidator<T> where T : class
 {
     protected ModelValidatorBase() => RuleLevelCascadeMode = CascadeMode.Stop;
