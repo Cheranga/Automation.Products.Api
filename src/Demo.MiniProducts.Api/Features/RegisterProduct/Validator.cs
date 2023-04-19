@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using Demo.MiniProducts.Api.Core;
 
 namespace Demo.MiniProducts.Api.Features.RegisterProduct;
 
+[ExcludeFromCodeCoverage]
 public class Validator : ModelValidatorBase<RegisterProductRequest>
 {
     public Validator() =>

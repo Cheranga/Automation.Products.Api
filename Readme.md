@@ -3,33 +3,45 @@
 ## Context
 To provide a Products API to use for automation.
 
+## Using the API in your local environment
+* Install Docker Desktop.
+* Install Azure Storage Explorer.
+* Open a command prompt and run the below command to download and run `Azurite` as a container in detached mode.
+
+```dockerfile
+docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite
+```
+* Open `Azure Storage Explorer` and create below. This table and queues are needed for the API to function.
+  * `registrations` table.
+  * `registrations` queue.
+  * `update-registrations` queue.
+
 ## Features
 
 ### Register product
-- [ ] Validate request.
-- [ ] Handling failures.
-- [ ] Publishing domain event to Azure storage queue.
-- [ ] Save data in Azure table storage.
+- [x] Validate request.
+- [x] Handling failures.
+- [x] Publishing domain event to Azure storage queue.
+- [x] Save data in Azure table storage.
 
 ### Change location of a product
-- [ ] Validate request.
-- [ ] Handling failures.
-- [ ] Publishing domain event to Azure storage queue.
-- [ ] Save data in Azure table storage.
+- [x] Validate request.
+- [x] Handling failures.
+- [x] Publishing domain event to Azure storage queue.
+- [x] Save data in Azure table storage.
 
 ### Get product by id
-- [ ] Validate request.
-- [ ] Handling failures.
-- [ ] Publishing domain event to Azure storage queue.
+- [x] Validate request.
+- [x] Handling failures.
 
 ### Get all products
-- Returns all the products.
+- [ ] Returns all the products.
 
 ### Authentication and Authorization
 - [ ] Integrating with Azure AD for authentication and authorization.
 
 ### Logging
-- [ ] Using Serilog for structured logging.
+- [x] Using Serilog for structured logging.
 
 ### Versioning
 - [ ] Support for default and specific versioning.
@@ -39,7 +51,7 @@ To provide a Products API to use for automation.
 - [ ] Using Azure Bicep for cloud resources deployment.
 
 ### API Documentation
-- [ ] Including comprehensive API documentation using Swagger.
+- [x] Including comprehensive API documentation using Swagger.
 
 ### Automation tests
 - [ ] Creating an integration test suite.
@@ -50,4 +62,25 @@ To provide a Products API to use for automation.
 
 * [Minimal API Tutorial](https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api?view=aspnetcore-7.0&tabs=visual-studio)
 
+* [Custom model binding](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/parameter-binding?view=aspnetcore-7.0#bindasync)
+
+```csharp
+public static async ValueTask<ChangeLocationRequest> BindAsync(
+    HttpContext context,
+    ParameterInfo _
+)
+    {
+        var category = context.GetRouteValue(nameof(Category))?.ToString();
+        var productId = context.GetRouteValue(nameof(Id))?.ToString();
+        var record = await context.Request.Body.ToModel<ChangeLocationRequest>() with
+        {
+            Category = category ?? string.Empty,
+            Id = productId ?? string.Empty
+        };
+    
+        return record;
+    }
+}
+
+```
 

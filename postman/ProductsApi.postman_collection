@@ -54,12 +54,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{baseurl}}/prod-1",
+					"raw": "{{baseurl}}/personal/prod-2",
 					"host": [
 						"{{baseurl}}"
 					],
 					"path": [
-						"prod-1"
+						"personal",
+						"prod-2"
 					]
 				}
 			},
@@ -72,8 +73,12 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 200\", function () {\r",
+							"pm.test(\"Status code is 201\", function () {\r",
 							"    pm.response.to.have.status(201);\r",
+							"\r",
+							"    pm.test(\"location is present\", function () {\r",
+							"        pm.response.to.have.header(\"Location\", \"/products/personal/PROD-2\");\r",
+							"    });\r",
 							"});\r",
 							"\r",
 							""
@@ -126,7 +131,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{  \r\n  \"locationCode\": \"1010\"\r\n}",
+					"raw": "{  \r\n  \"locationCode\": \"1020\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -134,7 +139,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://localhost:7033/products/tech/prod-1",
+					"raw": "https://localhost:7033/products/location/tech/prod-1",
 					"protocol": "https",
 					"host": [
 						"localhost"
@@ -142,6 +147,7 @@
 					"port": "7033",
 					"path": [
 						"products",
+						"location",
 						"tech",
 						"prod-1"
 					]
@@ -150,10 +156,30 @@
 			"response": []
 		}
 	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
 	"variable": [
 		{
 			"key": "baseurl",
-			"value": "https://localhost:7033/products/tech"
+			"value": "https://localhost:7033/products"
 		}
 	]
 }

@@ -1,9 +1,10 @@
 ﻿using Demo.MiniProducts.Api.Features.ChangeLocation;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentValidation;
+using Funky.Azure.DataTable.Extensions.Core;
+using Serilog;
 using Storage.Queue.Helper;
-using Storage.Table.Helper;
-using Tables = Storage.Table.Helper.Bootstrapper;
+using Swashbuckle.AspNetCore.Filters;
 using Messages = Storage.Queue.Helper.Bootstrapper;
 
 namespace Demo.MiniProducts.Api;
@@ -14,6 +15,7 @@ public static class Bootstrapper
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        RegisterLogging(builder);
         RegisterSwagger(builder);
         RegisterSettings(builder);
         RegisterValidators(builder);
@@ -21,6 +23,16 @@ public static class Bootstrapper
         RegisterMessaging(builder);
 
         return builder.Build();
+    }
+
+    private static void RegisterLogging(WebApplicationBuilder builder)
+    {
+        builder.Host.UseSerilog(
+            (context, configuration) =>
+            {
+                configuration.ReadFrom.Configuration(context.Configuration);
+            }
+        );
     }
 
     private static void RegisterSettings(WebApplicationBuilder builder)
@@ -60,7 +72,11 @@ public static class Bootstrapper
     private static void RegisterSwagger(WebApplicationBuilder builder)
     {
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.ExampleFilters();
+        });
+        builder.Services.AddSwaggerExamplesFromAssemblyOf(typeof(Bootstrapper));
     }
 
     private static void RegisterValidators(WebApplicationBuilder builder) =>

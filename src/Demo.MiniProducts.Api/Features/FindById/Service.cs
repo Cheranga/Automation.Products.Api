@@ -1,49 +1,86 @@
-using Demo.MiniProducts.Api.Core;
 using Demo.MiniProducts.Api.DataAccess;
+using Demo.MiniProducts.Api.Extensions;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
+using LanguageExt;
+using LanguageExt.Common;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Storage.Table.Helper;
+using static LanguageExt.Prelude;
 using static Microsoft.AspNetCore.Http.TypedResults;
-using ResponseExtensions = Demo.MiniProducts.Api.Extensions.ResponseExtensions;
+using QR = Funky.Azure.DataTable.Extensions.Queries.QueryResponse<
+    Funky.Azure.DataTable.Extensions.Queries.QueryResult.QueryFailedResult,
+    Funky.Azure.DataTable.Extensions.Queries.QueryResult.EmptyResult,
+    Funky.Azure.DataTable.Extensions.Queries.QueryResult.SingleResult<Demo.MiniProducts.Api.DataAccess.ProductDataModel>
+>;
 
 namespace Demo.MiniProducts.Api.Features.FindById;
 
-public record ProductDto(string Id, string Name, string Location, string Category);
-
-public record ProductResponse(ProductDto Data) : ResponseDtoBase<ProductDto>(Data);
-
 public static class Service
 {
-    public static async Task<Results<ProblemHttpResult, Ok<ProductResponse>>> GetProductDetailsById(
-        [FromRoute] string category,
-        [FromRoute] string id,
-        [FromServices] RegisterProductSettings settings,
-        [FromServices] ITableService tableService
+    public static async Task<
+        Results<ProblemHttpResult, NotFound, Ok<ProductResponse>>
+    > GetProductDetailsById(
+        GetProductByIdRequest request,
+        RegisterProductSettings settings,
+        IQueryService queryService,
+        ILogger logger,
+        CancellationToken token = new()
+    ) =>
+        (
+            await (
+                from op in GetProductFromTable(
+                    queryService,
+                    settings.Category,
+                    settings.Table,
+                    request.Category.ToUpper(),
+                    request.Id.ToUpper(),
+                    token
+                )
+                select op
+            ).Run()
+        ).Match(
+            op =>
+            {
+                logger.LogInformation("{@Category} {@ProductId} found", request.Category, request.Id);
+                return ToApiResponse(op.Response);
+            },
+            err =>
+            {
+                logger.LogError("{@Error} occurred", err);
+                return Error
+                    .New(ErrorCodes.FindProductError, ErrorMessages.FindProductError)
+                    .ToErrorResponse();
+            }
+        );
+
+    private static Aff<QR> GetProductFromTable(
+        IQueryService queryService,
+        string category,
+        string table,
+        string partitionKey,
+        string rowKey,
+        CancellationToken token
     )
     {
-        var op = await tableService.GetAsync<ProductDataModel>(
-            settings.Category,
-            settings.Table,
-            category,
-            id,
-            new CancellationToken()
-        );
-        if (op is TableOperation.FailedOperation)
-        {
-            return ResponseExtensions.ProductUnfound(id);
-        }
-
-        var product = (op as TableOperation.SuccessOperation<ProductDataModel>)!.Data;
-        return Ok(
-            new ProductResponse(
-                new ProductDto(
-                    product.ProductId,
-                    product.Name,
-                    product.LocationCode,
-                    product.Category
+        return AffMaybe<QR>(
+            async () =>
+                await queryService.GetEntityAsync<ProductDataModel>(
+                    category,
+                    table,
+                    partitionKey.ToUpper(),
+                    rowKey.ToUpper(),
+                    token
                 )
-            )
         );
     }
+
+    private static Results<ProblemHttpResult, NotFound, Ok<ProductResponse>> ToApiResponse(
+        QueryResult result
+    ) =>
+        result switch
+        {
+            QueryResult.QueryFailedResult f => f.ToErrorResponse(),
+            QueryResult.EmptyResult => NotFound(),
+            QueryResult.SingleResult<ProductDataModel> p => Ok(p.Entity.ToProductResponse()),
+            _ => throw new NotSupportedException()
+        };
 }

@@ -1,27 +1,23 @@
-using System.Reflection;
-using Demo.MiniProducts.Api.Extensions;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
+using Demo.MiniProducts.Api.Core;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace Demo.MiniProducts.Api.Features.ChangeLocation;
 
-public record ChangeLocationRequest
+[ExcludeFromCodeCoverage]
+public record ChangeLocationRequestDto(string LocationCode) : IDtoRequest<ChangeLocationRequestDto>,IExamplesProvider<ChangeLocationRequestDto>,
+    IValidatable<ChangeLocationRequestDto, ChangeLocationRequestDtoValidator>
 {
-    public string Category { get; set; } = string.Empty;
-    public string Id { get; set; } = string.Empty;
-    public string LocationCode { get; set; } = string.Empty;
+    [Required]
+    public string LocationCode { get; set; } = LocationCode;
 
-    public static async ValueTask<ChangeLocationRequest> BindAsync(
-        HttpContext context,
-        ParameterInfo _
-    )
+    public ChangeLocationRequestDto():this(string.Empty)
     {
-        var category = context.GetRouteValue(nameof(Category))?.ToString();
-        var productId = context.GetRouteValue(nameof(Id))?.ToString();
-        var record = await context.Request.Body.ToModel<ChangeLocationRequest>() with
-        {
-            Category = category?? string.Empty,
-            Id = productId?? string.Empty
-        };
-        
-        return record;
     }
+
+    public ChangeLocationRequestDto GetExamples() => new("6666");
 }
+
+[ExcludeFromCodeCoverage]
+public record ChangeLocationRequest(string Category, string Id, string LocationCode);

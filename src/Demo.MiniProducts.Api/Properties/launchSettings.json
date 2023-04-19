@@ -2,8 +2,7 @@
   "profiles": {
     "Demo.MiniProducts.Api": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": true,
+      "dotnetRunMessages": true,      
       "applicationUrl": "https://localhost:7033;http://localhost:5114",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

@@ -1,0 +1,1 @@
+global using Funky.Azure.DataTable.Extensions.Queries;

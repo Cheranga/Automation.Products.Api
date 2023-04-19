@@ -14,7 +14,7 @@ Content-Type: application/json
 }
 
 ### Change location
-PUT https://localhost:7033/products/tech/prod-1
+PUT https://localhost:7033/products/location/tech/prod-1
 Content-Type: application/json
 
 {  
