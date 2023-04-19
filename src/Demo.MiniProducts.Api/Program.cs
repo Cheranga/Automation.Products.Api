@@ -5,6 +5,7 @@ using FluentValidation;
 using Funky.Azure.DataTable.Extensions.Commands;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using Storage.Queue.Helper;
 using Bootstrapper = Demo.MiniProducts.Api.Bootstrapper;
 using FindProduct = Demo.MiniProducts.Api.Features.FindById;
@@ -13,6 +14,7 @@ using Service = Demo.MiniProducts.Api.Features.RegisterProduct.Service;
 const string Route = "products";
 
 var app = Bootstrapper.Setup(args);
+app.UseSerilogRequestLogging();
 app.UseSwagger();
 app.UseSwaggerUI();
 

@@ -55,7 +55,7 @@ public static class Service
             _ =>
             {
                 logger.LogInformation(
-                    "Product registration accepted @{Category} @{ProductId}",
+                    "Product registration accepted {@Category} {@ProductId}",
                     request.Category,
                     request.ProductId
                 );
