@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 using Microsoft.OpenApi.Models;
 
 namespace Demo.MiniProducts.Api.Extensions;

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Demo.MiniProducts.Api.Core;
 using Demo.MiniProducts.Api.DataAccess;
 using Demo.MiniProducts.Api.Extensions;
