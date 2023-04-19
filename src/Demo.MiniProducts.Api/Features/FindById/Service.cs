@@ -41,12 +41,12 @@ public static class Service
         ).Match(
             op =>
             {
-                logger.LogInformation("@{Category} @{ProductId} found", category, id);
+                logger.LogInformation("{@Category} {@ProductId} found", category, id);
                 return ToApiResponse(op.Response);
             },
             err =>
             {
-                logger.LogError("@{Error} occurred", err);
+                logger.LogError("{@Error} occurred", err);
                 return Error
                     .New(ErrorCodes.FindProductError, ErrorMessages.FindProductError)
                     .ToErrorResponse();

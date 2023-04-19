@@ -2,6 +2,8 @@
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentValidation;
 using Funky.Azure.DataTable.Extensions.Core;
+using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 using Storage.Queue.Helper;
 using Swashbuckle.AspNetCore.Filters;
 using Messages = Storage.Queue.Helper.Bootstrapper;
@@ -13,8 +15,8 @@ public static class Bootstrapper
     public static WebApplication Setup(params string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        builder.Logging.ClearProviders().AddJsonConsole();
 
+        RegisterLogging(builder);
         RegisterSwagger(builder);
         RegisterSettings(builder);
         RegisterValidators(builder);
@@ -22,6 +24,16 @@ public static class Bootstrapper
         RegisterMessaging(builder);
 
         return builder.Build();
+    }
+
+    private static void RegisterLogging(WebApplicationBuilder builder)
+    {
+        builder.Host.UseSerilog(
+            (context, configuration) =>
+            {
+                configuration.ReadFrom.Configuration(context.Configuration);
+            }
+        );
     }
 
     private static void RegisterSettings(WebApplicationBuilder builder)
