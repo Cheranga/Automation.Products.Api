@@ -1,0 +1,159 @@
+{
+	"info": {
+		"_postman_id": "5cefa808-5b94-451f-89c3-93f6d32edd7d",
+		"name": "STORAGE",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23804297",
+		"_collection_link": "https://lunar-moon-458807.postman.co/workspace/API-testing~75784f8e-3978-45c3-b6ba-37be54d772e4/collection/23804297-5cefa808-5b94-451f-89c3-93f6d32edd7d?action=share&creator=23804297&source=collection_link"
+	},
+	"item": [
+		{
+			"name": "Get product by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Check response\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.data.id).to.eql(\"prod-1\")\r",
+							"    pm.expect(jsonData.data.name).to.eql(\"MSI Laptop\", \"Name not matching\");\r",
+							"    pm.expect(jsonData.data.location).to.eql(\"1010\");\r",
+							"    pm.expect(jsonData.data.category).to.eql(\"tech\",\"Category not matching\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Content-Type header is application/json\", () => {\r",
+							"  pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/json; charset=utf-8');\r",
+							"});\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseurl}}/prod-1",
+					"host": [
+						"{{baseurl}}"
+					],
+					"path": [
+						"prod-1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register product",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"productId\": \"PROD-2\",\r\n  \"name\": \"MAC Laptop\",\r\n  \"locationCode\": \"1200\",\r\n  \"category\": \"personal\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7033/products",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7033",
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change location",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{  \r\n  \"locationCode\": \"1010\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7033/products/tech/prod-1",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7033",
+					"path": [
+						"products",
+						"tech",
+						"prod-1"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseurl",
+			"value": "https://localhost:7033/products/tech"
+		}
+	]
+}
