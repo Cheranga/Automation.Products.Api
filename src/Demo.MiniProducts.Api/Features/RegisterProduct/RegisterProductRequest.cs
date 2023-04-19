@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using Demo.MiniProducts.Api.Core;
@@ -29,7 +30,9 @@ public record RegisterProductRequest
     public RegisterProductRequest() : this(string.Empty, string.Empty, string.Empty, string.Empty)
     { }
 
+    
     [Required]
+    [DisplayName("The product id.")]
     public string ProductId { get; set; } = string.Empty;
 
     [Required]

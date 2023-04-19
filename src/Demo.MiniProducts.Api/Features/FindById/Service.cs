@@ -19,8 +19,7 @@ public static class Service
     public static async Task<
         Results<ProblemHttpResult, NotFound, Ok<ProductResponse>>
     > GetProductDetailsById(
-        string category,
-        string id,
+        GetProductByIdRequest request,
         RegisterProductSettings settings,
         IQueryService queryService,
         ILogger logger,
@@ -32,8 +31,8 @@ public static class Service
                     queryService,
                     settings.Category,
                     settings.Table,
-                    category.ToUpper(),
-                    id.ToUpper(),
+                    request.Category.ToUpper(),
+                    request.Id.ToUpper(),
                     token
                 )
                 select op
@@ -41,7 +40,7 @@ public static class Service
         ).Match(
             op =>
             {
-                logger.LogInformation("{@Category} {@ProductId} found", category, id);
+                logger.LogInformation("{@Category} {@ProductId} found", request.Category, request.Id);
                 return ToApiResponse(op.Response);
             },
             err =>
