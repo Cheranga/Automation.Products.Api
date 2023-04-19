@@ -62,4 +62,25 @@ docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azu
 
 * [Minimal API Tutorial](https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api?view=aspnetcore-7.0&tabs=visual-studio)
 
+* [Custom model binding](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/parameter-binding?view=aspnetcore-7.0#bindasync)
+
+```csharp
+public static async ValueTask<ChangeLocationRequest> BindAsync(
+    HttpContext context,
+    ParameterInfo _
+)
+    {
+        var category = context.GetRouteValue(nameof(Category))?.ToString();
+        var productId = context.GetRouteValue(nameof(Id))?.ToString();
+        var record = await context.Request.Body.ToModel<ChangeLocationRequest>() with
+        {
+            Category = category ?? string.Empty,
+            Id = productId ?? string.Empty
+        };
+    
+        return record;
+    }
+}
+
+```
 

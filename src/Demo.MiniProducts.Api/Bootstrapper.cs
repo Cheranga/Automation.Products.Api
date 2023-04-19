@@ -3,7 +3,6 @@ using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentValidation;
 using Funky.Azure.DataTable.Extensions.Core;
 using Serilog;
-using Serilog.Sinks.SystemConsole.Themes;
 using Storage.Queue.Helper;
 using Swashbuckle.AspNetCore.Filters;
 using Messages = Storage.Queue.Helper.Bootstrapper;

@@ -30,7 +30,7 @@ public class ProductDto
 }
 
 [ExcludeFromCodeCoverage]
-public class ProductResponse : IDto<ProductResponse>, IExamplesProvider<ProductResponse>
+public class ProductResponse : IDtoRequest<ProductResponse>, IExamplesProvider<ProductResponse>
 {
     public ProductResponse(ProductDto data) => Data = data;
 

@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using Demo.MiniProducts.Api.Core;
@@ -11,8 +10,9 @@ namespace Demo.MiniProducts.Api.Features.RegisterProduct;
 /// </summary>
 [ExcludeFromCodeCoverage]
 public record RegisterProductRequest
-    : IDto<RegisterProductRequest>,
-        IExamplesProvider<RegisterProductRequest>
+    : IDtoRequest<RegisterProductRequest>,
+        IExamplesProvider<RegisterProductRequest>,
+        IValidatable<RegisterProductRequest, Validator>
 {
     public RegisterProductRequest(
         string productId,
@@ -30,20 +30,17 @@ public record RegisterProductRequest
     public RegisterProductRequest() : this(string.Empty, string.Empty, string.Empty, string.Empty)
     { }
 
-    
     [Required]
-    [DisplayName("The product id.")]
     public string ProductId { get; set; } = string.Empty;
 
     [Required]
-    public string Name { get;  set;} = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     [Required]
     public string LocationCode { get; set; } = string.Empty;
 
     [Required]
-    public string Category { get;  set;} = string.Empty;
-
+    public string Category { get; set; } = string.Empty;
 
     public RegisterProductRequest GetExamples() => new("PROD1", "Laptop", "6666", "TECH");
 }

@@ -13,6 +13,7 @@ using Storage.Queue.Helper;
 using Bootstrapper = Demo.MiniProducts.Api.Bootstrapper;
 using FindProduct = Demo.MiniProducts.Api.Features.FindById;
 using Service = Demo.MiniProducts.Api.Features.RegisterProduct.Service;
+using Validator = Demo.MiniProducts.Api.Features.RegisterProduct.Validator;
 
 const string Route = "products";
 
@@ -89,6 +90,7 @@ productsApi
             )
     )
     .AddEndpointFilter<PerformanceFilter<RegisterProductRequest>>()
+    .AddEndpointFilter<RequestValidationFilter<RegisterProductRequest, Validator>>()
     .Accepts<RegisterProductRequest>(false, MediaTypeNames.Application.Json)
     .WithName(nameof(Service.RegisterProduct))
     .WithSummary("Registers a product.")
@@ -118,7 +120,8 @@ productsApi
                 commandService
             )
     )
-    .AddEndpointFilter<PerformanceFilter<ChangeLocationRequest>>()
+    .AddEndpointFilter<PerformanceFilter<ChangeLocationRequestDto>>()
+    .AddEndpointFilter<RequestValidationFilter<ChangeLocationRequestDto, ChangeLocationRequestDtoValidator>>()
     .Accepts<ChangeLocationRequest>(false, MediaTypeNames.Application.Json)
     .WithName(nameof(Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation))
     .WithSummary("Update product by searching for product id.")

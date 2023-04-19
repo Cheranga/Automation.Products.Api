@@ -1,11 +1,8 @@
 using System.Diagnostics;
-using Demo.MiniProducts.Api.Core;
-using Swashbuckle.AspNetCore.Filters;
 
 namespace Demo.MiniProducts.Api.Filters;
 
-public class PerformanceFilter<TRequest> : IEndpointFilter
-    where TRequest : class
+public class PerformanceFilter<TRequest> : IEndpointFilter where TRequest : class
 {
     private readonly ILogger _logger;
 
