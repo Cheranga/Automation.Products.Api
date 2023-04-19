@@ -8,8 +8,8 @@ Content-Type: application/json
 
 {
   "productId": "PROD-1",
-  "name": "Laptop",
-  "locationCode": "2010",
+  "name": "MSI Laptop",
+  "locationCode": "1000",
   "category": "Tech"
 }
 
@@ -18,7 +18,7 @@ PUT https://localhost:7033/products/location/tech/prod-1
 Content-Type: application/json
 
 {  
-  "locationCode": "3020"
+  "locationCode": "1010"
 }
 
 
