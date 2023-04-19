@@ -3,6 +3,7 @@ using Demo.MiniProducts.Api.Features.RegisterProduct;
 using FluentValidation;
 using Funky.Azure.DataTable.Extensions.Core;
 using Storage.Queue.Helper;
+using Swashbuckle.AspNetCore.Filters;
 using Messages = Storage.Queue.Helper.Bootstrapper;
 
 namespace Demo.MiniProducts.Api;
@@ -60,7 +61,11 @@ public static class Bootstrapper
     private static void RegisterSwagger(WebApplicationBuilder builder)
     {
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.ExampleFilters();
+        });
+        builder.Services.AddSwaggerExamplesFromAssemblyOf(typeof(Bootstrapper));
     }
 
     private static void RegisterValidators(WebApplicationBuilder builder) =>

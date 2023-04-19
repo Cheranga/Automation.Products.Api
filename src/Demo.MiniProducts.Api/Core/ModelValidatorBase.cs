@@ -6,7 +6,7 @@ using FluentValidation.Results;
 namespace Demo.MiniProducts.Api.Core;
 
 [ExcludeFromCodeCoverage]
-public class ModelValidatorBase<T> : AbstractValidator<T> where T : class
+public class ModelValidatorBase<T> : AbstractValidator<T> where T : notnull
 {
     protected ModelValidatorBase() => RuleLevelCascadeMode = CascadeMode.Stop;
 

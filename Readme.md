@@ -51,7 +51,7 @@ docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azu
 - [ ] Using Azure Bicep for cloud resources deployment.
 
 ### API Documentation
-- [ ] Including comprehensive API documentation using Swagger.
+- [x] Including comprehensive API documentation using Swagger.
 
 ### Automation tests
 - [ ] Creating an integration test suite.

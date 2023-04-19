@@ -15,6 +15,7 @@ const string Route = "products";
 var app = Bootstrapper.Setup(args);
 app.UseSwagger();
 app.UseSwaggerUI();
+
 var productsApi = app.MapGroup($"/{Route}/").WithOpenApi();
 
 productsApi
@@ -66,7 +67,7 @@ productsApi
                 loggerFactory.CreateLogger("RegisterProduct")
             )
     )
-    .Accepts<RegisterProductRequest>(MediaTypeNames.Application.Json)
+    .Accepts<RegisterProductRequest>(false, MediaTypeNames.Application.Json)
     .WithName(nameof(Service.RegisterProduct))
     .WithSummary("Registers a product.")
     .WithOpenApi();
@@ -93,6 +94,7 @@ productsApi
                 commandService
             )
     )
+    .Accepts<ChangeLocationRequest>(false, MediaTypeNames.Application.Json)
     .WithName(nameof(Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation))
     .WithSummary("Update product by searching for product id.")
     .WithOpenApi();

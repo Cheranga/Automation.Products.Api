@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Demo.MiniProducts.Api.Extensions;
@@ -12,10 +11,7 @@ public static class JsonExtensions
         using (var reader = new StreamReader(stream))
         {
             var content = await reader.ReadToEndAsync();
-            var record = JsonConvert.DeserializeObject<T>(content, new JsonSerializerSettings
-            {
-                Error = (_, args) => args.ErrorContext.Handled = true
-            });
+            var record = JsonSerializer.Deserialize<T>(content);
 
             return record ?? new T();
         }
