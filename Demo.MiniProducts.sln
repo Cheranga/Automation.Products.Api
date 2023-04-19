@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.Queue.Helper", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.MiniProducts.Api.Tests", "tests\Demo.MiniProducts.Api.Tests\Demo.MiniProducts.Api.Tests.csproj", "{092033A3-71D0-43CE-B4AE-56DA58E5657A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.MiniProducts.Automation.Tests", "tests\Demo.MiniProducts.Automation.Tests\Demo.MiniProducts.Automation.Tests.csproj", "{64D189A2-775D-461C-A28C-D874A9D08097}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{092033A3-71D0-43CE-B4AE-56DA58E5657A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{092033A3-71D0-43CE-B4AE-56DA58E5657A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{092033A3-71D0-43CE-B4AE-56DA58E5657A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64D189A2-775D-461C-A28C-D874A9D08097}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64D189A2-775D-461C-A28C-D874A9D08097}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64D189A2-775D-461C-A28C-D874A9D08097}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64D189A2-775D-461C-A28C-D874A9D08097}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
