@@ -5,7 +5,7 @@ using Swashbuckle.AspNetCore.Filters;
 namespace Demo.MiniProducts.Api.Filters;
 
 public class PerformanceFilter<TRequest> : IEndpointFilter
-    where TRequest : class, IDto<TRequest>, IExamplesProvider<TRequest>, new()
+    where TRequest : class
 {
     private readonly ILogger _logger;
 

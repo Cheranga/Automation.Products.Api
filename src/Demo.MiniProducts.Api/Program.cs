@@ -1,10 +1,12 @@
 using System.Net.Mime;
+using Demo.MiniProducts.Api.Extensions;
 using Demo.MiniProducts.Api.Features.ChangeLocation;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
 using Demo.MiniProducts.Api.Filters;
 using FluentValidation;
 using Funky.Azure.DataTable.Extensions.Commands;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Storage.Queue.Helper;
@@ -32,22 +34,38 @@ productsApi
             [FromServices] ILoggerFactory loggerFactory
         ) =>
             FindProduct.Service.GetProductDetailsById(
-                category,
-                id,
+                new FindProduct.GetProductByIdRequest(category, id),
                 settings,
                 queryService,
                 loggerFactory.CreateLogger("FindProductsById")
             )
     )
+    .WithName(nameof(FindProduct.Service.GetProductDetailsById))
     .WithSummary("Get product by product id.")
     .WithOpenApi(operation =>
     {
-        operation.OperationId = "Get Product By Id";
-        var id = operation.Parameters.First();
-        id.In = ParameterLocation.Path;
-        id.Required = true;
-        id.Description = "The id of the product.";
-        return operation;
+        operation.OperationId = nameof(FindProduct.Service.GetProductDetailsById);
+        return operation
+            .SetParamInfo<FindProduct.GetProductByIdRequest>(
+                x => x.Category,
+                x =>
+                {
+                    x.In = ParameterLocation.Path;
+                    x.Required = true;
+                    x.Description = "The category of the product.";
+                    x.Example = new OpenApiString("TECH");
+                }
+            )
+            .SetParamInfo<FindProduct.GetProductByIdRequest>(
+                x => x.Id,
+                x =>
+                {
+                    x.In = ParameterLocation.Path;
+                    x.Required = true;
+                    x.Description = "The id of the product.";
+                    x.Example = new OpenApiString("PROD1");
+                }
+            );
     });
 
 productsApi
@@ -78,9 +96,11 @@ productsApi
 
 productsApi
     .MapPut(
-        "/{category}/{id}",
+        "location/{category}/{id}",
         (
-            ChangeLocationRequest request,
+            [FromRoute] string category,
+            [FromRoute] string id,
+            [FromBody] ChangeLocationRequestDto request,
             [FromServices] IValidator<ChangeLocationRequest> validator,
             [FromServices] UpdateProductSettings updateSettings,
             [FromServices] RegisterProductSettings registerSettings,
@@ -89,7 +109,7 @@ productsApi
             [FromServices] ICommandService commandService
         ) =>
             Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation(
-                request,
+                new ChangeLocationRequest(category, id, request.LocationCode),
                 validator,
                 updateSettings,
                 registerSettings,
@@ -102,6 +122,32 @@ productsApi
     .Accepts<ChangeLocationRequest>(false, MediaTypeNames.Application.Json)
     .WithName(nameof(Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation))
     .WithSummary("Update product by searching for product id.")
-    .WithOpenApi();
+    .WithOpenApi(operation =>
+    {
+        operation.OperationId = nameof(
+            Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation
+        );
+        return operation
+            .SetParamInfo<ChangeLocationRequest>(
+                x => x.Category,
+                x =>
+                {
+                    x.In = ParameterLocation.Path;
+                    x.Required = true;
+                    x.Description = "The category of the product.";
+                    x.Example = new OpenApiString("TECH");
+                }
+            )
+            .SetParamInfo<ChangeLocationRequest>(
+                x => x.Id,
+                x =>
+                {
+                    x.In = ParameterLocation.Path;
+                    x.Required = true;
+                    x.Description = "The id of the product.";
+                    x.Example = new OpenApiString("PROD1");
+                }
+            );
+    });
 
 app.Run();

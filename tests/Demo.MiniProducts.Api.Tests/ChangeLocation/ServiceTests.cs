@@ -87,12 +87,7 @@ public static class ServiceTests
             .ReturnsAsync(QueryResult.Empty());
 
         var response = await Service.ChangeLocation(
-            new ChangeLocationRequest
-            {
-                Category = "tech",
-                Id = "prod1",
-                LocationCode = "2020"
-            },
+            new ChangeLocationRequest("tech", "prod1", "2020"),
             validator.Object,
             new UpdateProductSettings("test", "products", "connection string"),
             new RegisterProductSettings("test", "products", "products", "connection string"),
@@ -150,12 +145,7 @@ public static class ServiceTests
             .ReturnsAsync(CommandOperation.Fail(Error.New(1, "error")));
 
         var response = await Service.ChangeLocation(
-            new ChangeLocationRequest
-            {
-                Category = "tech",
-                Id = "prod1",
-                LocationCode = "2020"
-            },
+            new ChangeLocationRequest( "tech", "prod1", "2020"),
             validator.Object,
             new UpdateProductSettings("test", "products", "connection string"),
             new RegisterProductSettings("test", "products", "products", "connection string"),
@@ -229,12 +219,7 @@ public static class ServiceTests
             .ReturnsAsync(QueueOperation.Failure(QueueOperationError.New(1, "publish error")));
 
         var response = await Service.ChangeLocation(
-            new ChangeLocationRequest
-            {
-                Category = "tech",
-                Id = "prod1",
-                LocationCode = "2020"
-            },
+            new ChangeLocationRequest( "tech", "prod1", "2020"),
             validator.Object,
             new UpdateProductSettings("test", "productupdates", "connection string"),
             new RegisterProductSettings("test", "products", "products", "connection string"),
@@ -309,12 +294,7 @@ public static class ServiceTests
             .ReturnsAsync(QueueOperation.Success());
 
         var response = await Service.ChangeLocation(
-            new ChangeLocationRequest
-            {
-                Category = "tech",
-                Id = "prod1",
-                LocationCode = "2020"
-            },
+            new ChangeLocationRequest( "tech", "prod1", "2020"),
             validator.Object,
             new UpdateProductSettings("test", "productupdates", "connection string"),
             new RegisterProductSettings("test", "products", "products", "connection string"),

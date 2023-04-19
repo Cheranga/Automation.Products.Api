@@ -42,8 +42,7 @@ public class ServiceTests
             )
             .ReturnsAsync(QueryResult.Fail(Error.New(1, "error")));
         var op = await Service.GetProductDetailsById(
-            "tech",
-            "prod1",
+            new GetProductByIdRequest("tech", "prod1"),
             GetSettings(),
             queryService.Object,
             logger.Object
@@ -79,8 +78,7 @@ public class ServiceTests
                 () => QueryResult.Single(ProductDataModel.New("tech", "prod1", "laptop", "2010"))
             );
         var op = await Service.GetProductDetailsById(
-            "TECH",
-            "PROD1",
+            new GetProductByIdRequest("TECH", "PROD1"),
             GetSettings(),
             queryService.Object,
             logger.Object
@@ -114,8 +112,7 @@ public class ServiceTests
             )
             .ReturnsAsync(() => QueryResult.Empty());
         var op = await Service.GetProductDetailsById(
-            "TECH",
-            "PROD1",
+            new GetProductByIdRequest("TECH", "PROD1"),
             GetSettings(),
             queryService.Object,
             logger.Object
