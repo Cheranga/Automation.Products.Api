@@ -1,6 +1,7 @@
 using System.Net.Mime;
 using Demo.MiniProducts.Api.Features.ChangeLocation;
 using Demo.MiniProducts.Api.Features.RegisterProduct;
+using Demo.MiniProducts.Api.Filters;
 using FluentValidation;
 using Funky.Azure.DataTable.Extensions.Commands;
 using Microsoft.AspNetCore.Mvc;
@@ -69,6 +70,7 @@ productsApi
                 loggerFactory.CreateLogger("RegisterProduct")
             )
     )
+    .AddEndpointFilter<PerformanceFilter<RegisterProductRequest>>()
     .Accepts<RegisterProductRequest>(false, MediaTypeNames.Application.Json)
     .WithName(nameof(Service.RegisterProduct))
     .WithSummary("Registers a product.")
@@ -96,6 +98,7 @@ productsApi
                 commandService
             )
     )
+    .AddEndpointFilter<PerformanceFilter<ChangeLocationRequest>>()
     .Accepts<ChangeLocationRequest>(false, MediaTypeNames.Application.Json)
     .WithName(nameof(Demo.MiniProducts.Api.Features.ChangeLocation.Service.ChangeLocation))
     .WithSummary("Update product by searching for product id.")
