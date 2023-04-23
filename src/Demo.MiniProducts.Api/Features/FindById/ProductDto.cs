@@ -8,37 +8,34 @@ namespace Demo.MiniProducts.Api.Features.FindById;
 [ExcludeFromCodeCoverage]
 public class ProductDto
 {
-    public ProductDto(string id, string name, string location, string category)
-    {
-        Id = id;
-        Name = name;
-        Location = location;
-        Category = category;
-    }
+    [Required]
+    public string Id { get; set; } = string.Empty;
 
     [Required]
-    public string Id { get; }
+    public string Name { get; set; } = string.Empty;
 
     [Required]
-    public string Name { get; }
+    public string Location { get; set; } = string.Empty;
 
     [Required]
-    public string Location { get; }
-
-    [Required]
-    public string Category { get; }
+    public string Category { get; set; } = string.Empty;
 }
 
 [ExcludeFromCodeCoverage]
 public class ProductResponse : IDtoRequest<ProductResponse>, IExamplesProvider<ProductResponse>
 {
-    public ProductResponse(ProductDto data) => Data = data;
-
-    public ProductResponse()
-        : this(new ProductDto(string.Empty, string.Empty, string.Empty, string.Empty)) { }
-
     [Required]
-    public ProductDto Data { get; }
+    public ProductDto Data { get; set; } = null!;
 
-    public ProductResponse GetExamples() => new(new ProductDto("PROD1", "Laptop", "1234", "TECH"));
+    public ProductResponse GetExamples() =>
+        new()
+        {
+            Data = new ProductDto
+            {
+                Category = "TECH",
+                Id = "PROD1",
+                Name = "Laptop",
+                Location = "1234"
+            }
+        };
 }
