@@ -18,4 +18,7 @@ Features.ChangeLocation.RouteService.Setup(productsApi);
 app.Run();
 
 // This is required, so that the integration test project can refer the entry point to the API.
-public partial class Program{}
+namespace Demo.MiniProducts.Api
+{
+    public partial class Program{}
+}

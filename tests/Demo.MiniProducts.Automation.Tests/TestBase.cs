@@ -1,13 +1,16 @@
 using System.Net.Http.Json;
+using Demo.MiniProducts.Automation.Tests.Overrides;
 
 namespace Demo.MiniProducts.Automation.Tests;
 
-public abstract class TestBase : IClassFixture<TestWebApplicationFactory<Program>>
+public abstract class TestBase : IClassFixture<TestWebApplicationFactory<Api.Program>>
 {
     private readonly HttpClient _client;
+    protected TestWebApplicationFactory<Api.Program> Factory { get; }
 
-    protected TestBase(TestWebApplicationFactory<Program> factory)
+    protected TestBase(TestWebApplicationFactory<Api.Program> factory)
     {
+        Factory = factory;
         _client = factory.CreateClient();
     }
 

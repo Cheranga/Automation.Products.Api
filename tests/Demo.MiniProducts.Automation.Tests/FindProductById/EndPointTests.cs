@@ -1,5 +1,6 @@
 using System.Net;
 using Demo.MiniProducts.Api.Features.FindById;
+using Demo.MiniProducts.Automation.Tests.Overrides;
 using FluentAssertions;
 using Newtonsoft.Json;
 
@@ -9,13 +10,13 @@ public class EndPointTests : TestBase
 {
     private const string Products = "/products";
 
-    public EndPointTests(TestWebApplicationFactory<Program> startUp) : base(startUp) { }
+    public EndPointTests(TestWebApplicationFactory<Api.Program> startUp) : base(startUp) { }
 
     [Fact(DisplayName = "Product exists")]
     public async Task ProductExists()
     {
         var response = await GetAsync<ProductResponse>(
-            $"{Products}/tech/prod-1",
+            $"{Products}/tech/prod1",
             Array.Empty<(string, string)>
         );
 
@@ -25,7 +26,7 @@ public class EndPointTests : TestBase
         );
         productResponse.Should().NotBeNull();
         productResponse.Data.Should().NotBeNull();
-        productResponse.Data.Id.Should().Be("PROD-1");
+        productResponse.Data.Id.Should().Be("prod1");
     }
 
     [Fact(DisplayName = "Product does not exist")]

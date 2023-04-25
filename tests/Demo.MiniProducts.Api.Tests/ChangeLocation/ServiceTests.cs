@@ -11,12 +11,12 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
 using Storage.Queue.Helper;
 using Service = Demo.MiniProducts.Api.Features.ChangeLocation.Service;
-using CR = Microsoft.AspNetCore.Http.HttpResults.Results<
-    Microsoft.AspNetCore.Http.HttpResults.ValidationProblem,
-    Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult,
-    Microsoft.AspNetCore.Http.HttpResults.NotFound,
-    Microsoft.AspNetCore.Http.HttpResults.NoContent
->;
+// using CR = Microsoft.AspNetCore.Http.HttpResults.Results<
+//     Microsoft.AspNetCore.Http.HttpResults.ValidationProblem,
+//     Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult,
+//     Microsoft.AspNetCore.Http.HttpResults.NotFound,
+//     Microsoft.AspNetCore.Http.HttpResults.NoContent
+// >;
 
 namespace Demo.MiniProducts.Api.Tests.ChangeLocation;
 
