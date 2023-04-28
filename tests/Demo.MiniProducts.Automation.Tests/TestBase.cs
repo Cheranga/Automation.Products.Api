@@ -30,6 +30,23 @@ public abstract class TestBase : IClassFixture<TestWebApplicationFactory<Api.Pro
 
         return httpResponse;
     }
+    
+    protected async Task<HttpResponseMessage> PutAsync<T>(
+        string url,
+        T data,
+        Func<(string name, string value)[]> headers
+    )
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, url);
+        var requestHeaders = headers()?.ToList() ?? new List<(string name, string value)>();
+        requestHeaders.ForEach(x => request.Headers.Add(x.name, x.value));
+
+        var httpResponse = await _client.SendAsync(
+            new HttpRequestMessage(HttpMethod.Put, url) { Content = JsonContent.Create(data) }
+        );
+
+        return httpResponse;
+    }
 
     protected async Task<HttpResponseMessage> GetAsync<T>(
         string url,
