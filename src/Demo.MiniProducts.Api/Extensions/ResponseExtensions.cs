@@ -43,15 +43,17 @@ public static class ResponseExtensions
         new(request.ProductId, request.Category, DateTime.UtcNow);
 
     public static ProductResponse ToProductResponse(this ProductDataModel dataModel) =>
-        new(
-            new ProductDto(
-                dataModel.ProductId,
-                dataModel.Name,
-                dataModel.LocationCode,
-                dataModel.Category
-            )
-        );
-    
+        new()
+        {
+            Data = new ProductDto
+            {
+                Category = dataModel.Category,
+                Name = dataModel.Name,
+                Id = dataModel.ProductId,
+                Location = dataModel.LocationCode
+            }
+        };
+
     public static ProductDataModel ToDataModel(this RegisterProductRequest request) =>
         ProductDataModel.New(
             request.Category,

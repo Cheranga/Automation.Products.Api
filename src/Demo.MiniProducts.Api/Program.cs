@@ -16,3 +16,8 @@ Features.RegisterProduct.RouteService.Setup(productsApi);
 Features.ChangeLocation.RouteService.Setup(productsApi);
 
 app.Run();
+
+namespace Demo.MiniProducts.Api
+{
+    public partial class Program{}
+}

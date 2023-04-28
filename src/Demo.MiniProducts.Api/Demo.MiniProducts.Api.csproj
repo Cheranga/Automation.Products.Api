@@ -23,5 +23,10 @@
     <ItemGroup>
         <ProjectReference Include="..\Storage.Queue.Helper\Storage.Queue.Helper.csproj" />
     </ItemGroup>
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>Demo.MiniProducts.Automation.Tests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
 
 </Project>
