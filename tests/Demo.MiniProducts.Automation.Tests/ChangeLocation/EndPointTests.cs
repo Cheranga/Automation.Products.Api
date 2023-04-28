@@ -17,7 +17,6 @@ public class EndPointTests : TestBase
     [InlineData(null)]
     public async Task InvalidRequest(string locationCode)
     {
-        new TestWebApplicationFactory<Program>()
         var request = new ChangeLocationRequestDto { LocationCode = locationCode };
         var response = await PutAsync(
             $"{Products}/location/tech/prod1",
