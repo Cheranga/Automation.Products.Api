@@ -33,4 +33,20 @@ public static class HttpMethodCaller
 
         return httpResponse;
     }
+
+    public static async Task<HttpResponseMessage> PostAsync(HttpClient client,
+        string url,
+        Func<JsonContent> contentFunc,
+        (string name, string[] values)[]? headers = null)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, url);
+        var requestHeaders = headers?.ToList() ?? new List<(string name, string[] values)>();
+        requestHeaders.ForEach(x => request.Headers.Add(x.name, x.values));
+
+        var httpResponse = await client.SendAsync(
+            new HttpRequestMessage(HttpMethod.Post, url) { Content = contentFunc() }
+        );
+
+        return httpResponse;
+    }
 }

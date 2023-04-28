@@ -70,6 +70,8 @@ public class EndPointTests
             $"{Products}/location/tech/prod1",
             () => JsonContent.Create(request)
         );
+        
+        
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
