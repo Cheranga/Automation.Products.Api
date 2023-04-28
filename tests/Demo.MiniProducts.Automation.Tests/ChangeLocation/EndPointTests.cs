@@ -65,13 +65,8 @@ public class EndPointTests
     public async Task InvalidRequest(string locationCode)
     {
         var request = new ChangeLocationRequestDto { LocationCode = locationCode };
-        var response = await HttpMethodCaller.PutAsync(
-            _client,
-            $"{Products}/location/tech/prod1",
-            () => JsonContent.Create(request)
-        );
-        
-        
+        var response = await _client.PutAsJsonAsync($"{Products}/location/tech/prod1", request);
+
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -79,11 +74,7 @@ public class EndPointTests
     public async Task ProductDoesNotExist()
     {
         var request = new ChangeLocationRequestDto { LocationCode = "1234" };
-        var response = await HttpMethodCaller.PutAsync(
-            _client,
-            $"{Products}/location/tech/prod-666",
-            () => JsonContent.Create(request)
-        );
+        var response = await _client.PutAsJsonAsync($"{Products}/location/tech/prod-666", request);
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -91,11 +82,7 @@ public class EndPointTests
     public async Task ProductUpdated()
     {
         var request = new ChangeLocationRequestDto { LocationCode = "1234" };
-        var response = await HttpMethodCaller.PutAsync(
-            _client,
-            $"{Products}/location/tech/prod1",
-            () => JsonContent.Create(request)
-        );
+        var response = await _client.PutAsJsonAsync($"{Products}/location/tech/prod1", request);
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 }

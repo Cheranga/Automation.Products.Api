@@ -62,11 +62,7 @@ public class EndPointTests
             LocationCode = "1234",
             ProductId = "prod-666"
         };
-        var response = await HttpMethodCaller.PostAsync(
-            _client,
-            "/products",
-            () => JsonContent.Create(request)
-        );
+        var response = await _client.PostAsJsonAsync("/products", request);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -80,11 +76,7 @@ public class EndPointTests
             LocationCode = "666",
             ProductId = "666"
         };
-        var response = await HttpMethodCaller.PostAsync(
-            _client,
-            "/products",
-            () => JsonContent.Create(request)
-        );
+        var response = await _client.PostAsJsonAsync("/products", request);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
     }
 }

@@ -32,7 +32,7 @@ public class EndPointTests
     [Fact(DisplayName = "Product exists")]
     public async Task ProductExists()
     {
-        var response = await HttpMethodCaller.GetAsync(_client, $"{Products}/tech/prod1");
+        var response = await _client.GetAsync($"{Products}/tech/prod1");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var productResponse = JsonConvert.DeserializeObject<ProductResponse>(
@@ -46,7 +46,7 @@ public class EndPointTests
     [Fact(DisplayName = "Product does not exist")]
     public async Task ProductDoesNotExist()
     {
-        var response = await HttpMethodCaller.GetAsync(_client, $"{Products}/tech/prod-666");
+        var response = await _client.GetAsync($"{Products}/tech/prod-666");
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }
